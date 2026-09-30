@@ -1,0 +1,8 @@
+<%- include('partials/header') %>
+    <h1>Panel</h1>
+    <p>Hola, <strong><%= user.name %></strong> (<%= user.email %>)</p>
+    <form method="POST" action="/logout">
+        <input type="hidden" name="_token" value="<%= csrfToken %>">
+        <button type="submit">Cerrar sesión</button>
+    </form>
+<%- include('partials/footer') %>
