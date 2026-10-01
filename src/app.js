@@ -17,6 +17,7 @@ export function createApp({ db, mailer, sessionStore, sessionSecret = config.ses
 
     app.set('view engine', 'ejs');
     app.set('views', path.resolve(import.meta.dirname, '../views'));
+    app.use(express.static(path.resolve(import.meta.dirname, '../public')));
     app.set('trust proxy', 1);
     app.locals.appName = config.app.name;
 

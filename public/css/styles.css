@@ -1,0 +1,77 @@
+body {
+    background-color: #141414; /* Tono oscuro tipo Netflix */
+    color: #ffffff;            /* Texto en color blanco */
+    font-family: Arial, sans-serif; /* O la tipografía que prefieras */
+    margin: 0;
+    padding: 0;
+}
+h1{
+    text-align: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    margin: 50px auto;        /* Centra el contenedor */
+    padding: 40px;
+    background-color: rgba(0, 0, 0, 0.516); /* Fondo translúcido */
+    border-radius: 8px;       /* Bordes redondeados */
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: #333;
+    color: #fff;
+    box-sizing: border-box; /* Previene que se desborde del contenedor */
+}
+
+/* Efecto al hacer clic dentro del input */
+input:focus {
+    border-color: #e50914; 
+    outline: none;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #e50914; /* Rojo característico */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease; /* Transición suave */
+}
+
+/* Efecto al pasar el mouse sobre el botón */
+button:hover {
+    background-color: #f40612;
+}
+
+.logo-netflix{
+    font-family:'Times New Roman', Times, serif;
+    font-size: 50px;
+    color: red;
+    text-align: center;
+}
+
+.logo-netflix{
+    opacity: 0;
+    transform: translateY(20px);
+
+    animation: fadeInUp 1.5s ease-out forwards;
+}
+
+/* Definición de los pasos de la animación */
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
