@@ -1,11 +1,35 @@
 <%- include('../partials/header') %>
-    <h1>Registro</h1>
-    <form method="POST" action="/register">
+
+<div class="auth-card" id="registerCard">
+    <h1 class="auth-title">Crear cuenta</h1>
+    <p class="auth-description">Regístrate para comenzar a disfrutar de Netfic.</p>
+
+    <form method="POST" action="/register" id="registerForm">
         <input type="hidden" name="_token" value="<%= csrfToken %>">
-        <label>Nombre <input type="text" name="name" value="<%= old.name ?? '' %>" required autofocus></label>
-        <label>Email <input type="email" name="email" value="<%= old.email ?? '' %>" required></label>
+
+        <!-- Campo Nombre -->
+        <div class="input-group">
+            <input type="text" id="name" name="name" value="<%= old.name ?? '' %>" placeholder=" " required autofocus>
+            <label for="name">Nombre completo</label>
+        </div>
+
+        <!-- Campo Email -->
+        <div class="input-group">
+            <input type="email" id="email" name="email" value="<%= old.email ?? '' %>" placeholder=" " required>
+            <label for="email">Correo electrónico</label>
+        </div>
+
+        <!-- Campos de Contraseña (Include de EJS) -->
         <%- include('partials/password-fields') %>
-        <button type="submit">Crear cuenta</button>
+
+        <!-- Botón de Envío -->
+        <button type="submit" class="btn-primary" id="btnRegister">Crear cuenta</button>
     </form>
-    <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+
+    <!-- Enlace para alternar a Login -->
+    <div class="auth-switch">
+        ¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>.
+    </div>
+</div>
+
 <%- include('../partials/footer') %>
