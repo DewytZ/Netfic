@@ -24,6 +24,8 @@ export default {
         database: env.DB_DATABASE,
         user: env.DB_USERNAME,
         password: env.DB_PASSWORD,
+        // Supabase y otros Postgres en la nube exigen conexión cifrada.
+        ssl: env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     },
     mail: {
         mailer: env.MAIL_MAILER ?? 'log',
