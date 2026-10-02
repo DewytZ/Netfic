@@ -45,11 +45,19 @@ body.auth-body {
   padding: 32px 8%;
 }
 
+/* Por encima del fondo animado de películas (client/movie-background) */
+.main-header,
+.auth-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
 .logo-text {
   font-size: 5rem;
   font-weight: 700;
   letter-spacing: 2.5px;
   color: var(--text-main);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8);
   display: inline-flex;
   align-items: center;
   gap: 10px;

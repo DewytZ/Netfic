@@ -1,6 +1,9 @@
 # Dependencias
 /node_modules
 
+# Frontend compilado (npm run build:client)
+/public/build
+
 # Variables de entorno
 .env
 .env.*

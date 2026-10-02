@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="auth-body">
+    <% if (typeof movieBackground !== 'undefined' && movieBackground) { %>
+        <%- include('movie-background') %>
+    <% } %>
     <header class="main-header">
         <div class="logo-container">
             <span class="logo-text">
