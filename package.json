@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "migrate": "node scripts/migrate.js",
+    "mail:test": "node scripts/test-mail.js",
     "test": "node --test \"tests/**/*.test.js\""
   },
   "dependencies": {

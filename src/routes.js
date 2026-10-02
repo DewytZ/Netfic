@@ -30,8 +30,9 @@ export function createRouter({ db, mailer }) {
 
     router.get('/forgot-password', guest, resetCtrl.showForgot);
     router.post('/forgot-password', guest, throttle(), resetCtrl.sendResetLink);
-    router.get('/reset-password/:token', guest, resetCtrl.showReset);
-    router.post('/reset-password', guest, resetCtrl.reset);
+    // Sin "guest": el enlace del correo debe abrir aunque haya una sesión iniciada en el navegador.
+    router.get('/reset-password/:token', resetCtrl.showReset);
+    router.post('/reset-password', resetCtrl.reset);
 
     router.get('/dashboard', auth, authCtrl.dashboard);
     router.post('/logout', auth, authCtrl.logout);

@@ -78,29 +78,68 @@ describe('restablecer contraseña', () => {
     test('rechaza una contraseña débil al restablecer', async () => {
         const user = await createUser(ctx.db);
         const agent = ctx.agent();
+        await submitForm(agent, '/forgot-password', '/forgot-password', { email: user.email });
+        const token = resetTokenFrom(ctx.sentMail[0]);
 
-        await submitForm(agent, '/reset-password/cualquiera', '/reset-password', {
-            token: 'cualquiera',
+        await submitForm(agent, `/reset-password/${token}?email=${user.email}`, '/reset-password', {
+            token,
             email: user.email,
             password: 'debil',
             password_confirmation: 'debil',
         });
 
-        assert.match((await agent.get('/reset-password/cualquiera')).text, /La contraseña debe tener entre 8 y 64 caracteres/);
+        assert.match((await agent.get(`/reset-password/${token}`)).text, /La contraseña debe tener entre 8 y 64 caracteres/);
     });
 
-    test('rechaza un token falso', async () => {
+    test('un enlace con token falso muestra "Enlace no válido" sin formulario', async () => {
         const user = await createUser(ctx.db);
         const agent = ctx.agent();
         await submitForm(agent, '/forgot-password', '/forgot-password', { email: user.email });
 
-        await submitForm(agent, '/reset-password/token-falso', '/reset-password', {
+        const page = (await agent.get(`/reset-password/token-falso?email=${user.email}`)).text;
+
+        assert.match(page, /Enlace no válido/);
+        assert.doesNotMatch(page, /id="resetPasswordForm"/);
+    });
+
+    test('rechaza un token falso enviado directo al formulario', async () => {
+        const user = await createUser(ctx.db);
+        const agent = ctx.agent();
+        await submitForm(agent, '/forgot-password', '/forgot-password', { email: user.email });
+
+        const res = await submitForm(agent, '/login', '/reset-password', {
             token: 'token-falso',
             email: user.email,
             password: 'Nueva#Clave9',
             password_confirmation: 'Nueva#Clave9',
         });
 
-        assert.match((await agent.get('/reset-password/token-falso')).text, /El enlace no es válido o ya expiró/);
+        assert.notEqual(res.headers.location, '/login');
+        const { rows } = await ctx.db.query('SELECT password FROM users WHERE id = $1', [user.id]);
+        assert.ok(await bcrypt.compare(user.plainPassword, rows[0].password));
+    });
+
+    test('el enlace funciona aunque haya una sesión iniciada en el navegador', async () => {
+        const user = await createUser(ctx.db);
+        const agent = ctx.agent();
+        await submitForm(agent, '/login', '/login', { email: user.email, password: user.plainPassword });
+        await createUser(ctx.db, { email: 'luis@example.com' });
+        await submitForm(ctx.agent(), '/forgot-password', '/forgot-password', { email: 'luis@example.com' });
+        const token = resetTokenFrom(ctx.sentMail[0]);
+        const formUrl = `/reset-password/${token}?email=luis@example.com`;
+
+        const page = await agent.get(formUrl);
+        assert.equal(page.status, 200);
+        assert.match(page.text, /id="resetPasswordForm"/);
+
+        const res = await submitForm(agent, formUrl, '/reset-password', {
+            token,
+            email: 'luis@example.com',
+            password: 'Nueva#Clave9',
+            password_confirmation: 'Nueva#Clave9',
+        });
+
+        assert.equal(res.headers.location, '/login');
+        assert.match((await agent.get('/login')).text, /Contraseña actualizada/);
     });
 });

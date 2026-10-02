@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
             "-=0.3"
         );
 
+        // Sacudida breve para que el error no pase desapercibido
+        const errorToast = activeCard.querySelector('.error-toast');
+        if (errorToast) {
+            tl.fromTo(errorToast,
+                { x: -8 },
+                { x: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' }
+            );
+        }
+
         // 3. Microinteracción táctil al enviar formulario
         const form = activeCard.querySelector('form');
         const submitBtn = activeCard.querySelector('.btn-primary');

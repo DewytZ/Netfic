@@ -4,13 +4,15 @@
     <h1 class="auth-title">Crear cuenta</h1>
     <p class="auth-description">Regístrate para comenzar a disfrutar de Netfic.</p>
 
+    <%- include('../partials/alerts') %>
+
     <form method="POST" action="/register" id="registerForm">
         <input type="hidden" name="_token" value="<%= csrfToken %>">
 
-        <!-- Campo Nombre -->
+        <!-- Campo Nombre de usuario -->
         <div class="input-group">
-            <input type="text" id="name" name="name" value="<%= old.name ?? '' %>" placeholder=" " required autofocus>
-            <label for="name">Nombre completo</label>
+            <input type="text" id="name" name="name" value="<%= old.name ?? '' %>" placeholder=" " required autocomplete="username" autofocus>
+            <label for="name">Nombre de usuario</label>
         </div>
 
         <!-- Campo Email -->

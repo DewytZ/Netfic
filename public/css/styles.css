@@ -149,6 +149,53 @@ body.auth-body {
   box-shadow: 0 0 0 4px var(--input-focus-glow);
 }
 
+/* Campo con error */
+.input-group.has-error input {
+  border-color: var(--danger);
+}
+
+.input-group.has-error input:focus {
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
+}
+
+.input-group.has-error input:focus ~ label,
+.input-group.has-error input:not(:placeholder-shown) ~ label {
+  color: #fca5a5;
+}
+
+/* Botón ver/ocultar contraseña */
+.input-group.has-toggle input {
+  padding-right: 52px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.password-toggle:hover {
+  color: var(--text-main);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
+}
+
 /* Opciones y Links */
 .auth-options {
   display: flex;
@@ -282,6 +329,18 @@ body.auth-body {
   font-size: 0.88rem;
 }
 
+.toast ul {
+  list-style: none;
+}
+
+.toast li + li {
+  margin-top: 4px;
+}
+
+.auth-card .toast {
+  margin-bottom: 20px;
+}
+
 .error-toast {
   background-color: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.25);
@@ -292,4 +351,71 @@ body.auth-body {
   background-color: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.25);
   color: #6ee7b7;
+}
+/* Panel del usuario */
+.dashboard-card {
+  text-align: center;
+}
+
+.user-avatar {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #a855f7);
+  box-shadow: 0 0 24px var(--primary-glow);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.dashboard-card .auth-title {
+  overflow-wrap: anywhere;
+}
+
+/* Botón secundario: cerrar sesión */
+.btn-logout {
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-logout:hover {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+}
+
+.btn-logout:focus-visible {
+  outline: 2px solid var(--input-focus-border);
+  outline-offset: 2px;
+}
+
+/* Enlace con apariencia de botón principal */
+.btn-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.input-group input[readonly] {
+  color: var(--text-muted);
+  cursor: default;
 }

@@ -1,0 +1,15 @@
+<% if (typeof status !== 'undefined' && status) { %>
+    <div class="toast status-toast" role="status">
+        <p><%= status %></p>
+    </div>
+<% } %>
+
+<% if (typeof errors !== 'undefined' && errors && errors.length) { %>
+    <div class="toast error-toast" role="alert">
+        <ul>
+            <% errors.forEach((error) => { %>
+                <li><%= error %></li>
+            <% }) %>
+        </ul>
+    </div>
+<% } %>

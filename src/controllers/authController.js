@@ -21,9 +21,9 @@ export function authController(db) {
             const errors = [];
 
             if (!name) {
-                errors.push('El nombre es obligatorio.');
+                errors.push('El nombre de usuario es obligatorio.');
             } else if (name.length > 255) {
-                errors.push('El nombre no puede tener más de 255 caracteres.');
+                errors.push('El nombre de usuario no puede tener más de 255 caracteres.');
             }
 
             if (!isValidEmail(email)) {
