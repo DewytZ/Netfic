@@ -1,0 +1,1087 @@
+/* Catálogo tipo Netflix (panel después de iniciar sesión). Usa los tokens de public/css/styles.css. */
+
+body.browse-body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+}
+
+body.nf-lock {
+    overflow: hidden;
+}
+
+.nf-app button {
+    font-family: inherit;
+}
+
+/* ---------- Barra superior ---------- */
+
+.nf-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    padding: 16px 4%;
+    background: linear-gradient(to bottom, rgba(8, 11, 17, 0.85), transparent);
+    transition: background-color 0.3s ease;
+}
+
+.nf-nav--solid {
+    background-color: rgba(8, 11, 17, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 0 var(--card-border);
+}
+
+.nf-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--text-main);
+    text-decoration: none;
+    flex: none;
+}
+
+.nf-logo__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.nf-nav__links {
+    display: flex;
+    gap: 22px;
+}
+
+.nf-nav__link {
+    background: none;
+    border: none;
+    padding: 4px 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.nf-nav__link:hover {
+    color: var(--text-main);
+}
+
+.nf-nav__link.is-active {
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.nf-nav__actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.nf-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.nf-icon-btn:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nf-icon-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.nf-app :focus-visible {
+    outline: 2px solid var(--input-focus-border);
+    outline-offset: 2px;
+}
+
+/* Búsqueda */
+.nf-search {
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+}
+
+.nf-search input {
+    width: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text-main);
+    font: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: width 0.25s ease;
+}
+
+.nf-search.is-open {
+    background-color: rgba(8, 11, 17, 0.85);
+    border-color: var(--input-border);
+}
+
+.nf-search.is-open input {
+    width: 200px;
+    padding-right: 12px;
+}
+
+/* Perfil */
+.nf-profile {
+    position: relative;
+}
+
+.nf-avatar {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), #a855f7);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    flex: none;
+}
+
+.nf-avatar--small {
+    width: 40px;
+    height: 40px;
+    cursor: default;
+}
+
+.nf-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 260px;
+    padding: 8px;
+    background-color: rgba(15, 22, 35, 0.98);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    animation: nf-pop 0.15s ease-out;
+}
+
+@keyframes nf-pop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.nf-menu__user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 10px 14px;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 6px;
+}
+
+.nf-menu__user div {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.nf-menu__user strong {
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nf-menu__user span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nf-menu__logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.nf-menu__logout:hover {
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* ---------- Portada ---------- */
+
+.nf-hero {
+    position: relative;
+    min-height: 82vh;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 4% 13vh;
+    overflow: hidden;
+}
+
+/* Brillo animado + degradados para fundir la portada con el fondo. */
+.nf-hero__glow {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 75% 30%, rgba(255, 255, 255, 0.18), transparent 45%),
+        linear-gradient(to right, rgba(8, 11, 17, 0.9) 0%, rgba(8, 11, 17, 0.35) 55%, transparent 80%),
+        linear-gradient(to top, var(--bg-dark) 0%, transparent 35%);
+    animation: nf-glow 14s ease-in-out infinite alternate;
+}
+
+@keyframes nf-glow {
+    from { background-position: 0 0; transform: scale(1); }
+    to { transform: scale(1.06); }
+}
+
+.nf-hero__content {
+    position: relative;
+    max-width: 560px;
+}
+
+.nf-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.nf-hero__badge .nf-logo__dot {
+    width: 8px;
+    height: 8px;
+}
+
+.nf-hero__title {
+    margin: 0 0 14px;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+}
+
+.nf-hero__desc {
+    margin: 14px 0 24px;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: rgba(248, 250, 252, 0.9);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+
+.nf-hero__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.nf-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.92rem;
+    color: rgba(248, 250, 252, 0.85);
+}
+
+.nf-meta__match {
+    color: var(--success);
+    font-weight: 700;
+}
+
+.nf-meta__rating {
+    padding: 1px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 4px;
+    font-size: 0.78rem;
+}
+
+.nf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 46px;
+    padding: 0 26px 0 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nf-btn--play {
+    background-color: #fff;
+    color: #0b0f17;
+}
+
+.nf-btn--play:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.nf-btn--ghost {
+    background-color: rgba(148, 163, 184, 0.3);
+    color: #fff;
+    backdrop-filter: blur(6px);
+}
+
+.nf-btn--ghost:hover {
+    background-color: rgba(148, 163, 184, 0.45);
+}
+
+.nf-round-btn {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    background-color: rgba(8, 11, 17, 0.5);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nf-round-btn:hover {
+    border-color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Filas ---------- */
+
+.nf-main {
+    padding-bottom: 40px;
+}
+
+.nf-main--plain {
+    padding-top: 100px;
+}
+
+.nf-rows {
+    position: relative;
+    margin-top: -9vh;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+}
+
+.nf-row__title {
+    margin: 0 4% 10px;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.nf-row__wrap {
+    position: relative;
+}
+
+.nf-row__track {
+    display: flex;
+    gap: 8px;
+    padding: 14px 4% 20px;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 4%;
+    scrollbar-width: none;
+}
+
+.nf-row__track::-webkit-scrollbar {
+    display: none;
+}
+
+.nf-row__arrow {
+    position: absolute;
+    top: 14px;
+    bottom: 20px;
+    z-index: 5;
+    width: 4%;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: rgba(8, 11, 17, 0.6);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+.nf-row__wrap:hover .nf-row__arrow,
+.nf-row__arrow:focus-visible {
+    opacity: 1;
+}
+
+.nf-row__arrow:hover {
+    background-color: rgba(8, 11, 17, 0.85);
+}
+
+.nf-row__arrow--left {
+    left: 0;
+    border-radius: 0 6px 6px 0;
+}
+
+.nf-row__arrow--right {
+    right: 0;
+    border-radius: 6px 0 0 6px;
+}
+
+/* ---------- Tarjetas ---------- */
+
+.nf-card {
+    position: relative;
+    flex: none;
+    width: clamp(200px, 19vw, 300px);
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nf-card:hover,
+.nf-card:focus-visible {
+    transform: scale(1.07);
+    z-index: 4;
+}
+
+.nf-card__art {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    aspect-ratio: 16 / 9;
+    padding: 12px 14px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.nf-card__art::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 15%, rgba(255, 255, 255, 0.2), transparent 50%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent 60%);
+}
+
+.nf-card__type {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: var(--primary);
+    font-size: 0.7rem;
+    font-weight: 800;
+}
+
+.nf-card__title {
+    position: relative;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.15;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    transition: opacity 0.2s;
+}
+
+.nf-card__hover {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 14px;
+    background: linear-gradient(to top, rgba(8, 11, 17, 0.95), rgba(8, 11, 17, 0.2));
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+
+.nf-card:hover .nf-card__hover,
+.nf-card:focus-visible .nf-card__hover {
+    opacity: 1;
+}
+
+.nf-card:hover .nf-card__title,
+.nf-card:focus-visible .nf-card__title {
+    opacity: 0;
+}
+
+.nf-card__play {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #fff;
+    color: #0b0f17;
+    padding-left: 2px;
+}
+
+.nf-card__info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: rgba(248, 250, 252, 0.9);
+}
+
+.nf-card__progress {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 8px;
+    height: 3px;
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+}
+
+.nf-card__progress span {
+    display: block;
+    height: 100%;
+    background-color: var(--primary);
+}
+
+/* Top 10: número gigante al lado de la carátula */
+.nf-card--ranked {
+    display: flex;
+    align-items: flex-end;
+    width: clamp(230px, 22vw, 330px);
+}
+
+.nf-card--ranked .nf-card__art {
+    flex: 1;
+    aspect-ratio: 2 / 3;
+    max-width: 62%;
+}
+
+.nf-card__rank {
+    flex: none;
+    width: 38%;
+    margin-right: -2%;
+    font-size: clamp(6rem, 11vw, 10rem);
+    font-weight: 900;
+    line-height: 0.8;
+    letter-spacing: -0.08em;
+    color: var(--bg-dark);
+    -webkit-text-stroke: 3px rgba(148, 163, 184, 0.75);
+    text-align: right;
+    user-select: none;
+}
+
+/* ---------- Cuadrícula (búsqueda, Mi lista, similares) ---------- */
+
+.nf-grid-section {
+    padding: 0 4%;
+}
+
+.nf-grid-section__title {
+    margin: 0 0 20px;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.nf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 28px 10px;
+}
+
+.nf-grid .nf-card {
+    width: auto;
+}
+
+.nf-grid--compact {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.nf-empty {
+    color: var(--text-muted);
+    font-size: 1rem;
+    padding: 40px 0;
+}
+
+/* ---------- Ficha de detalle ---------- */
+
+.nf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 16px;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+    animation: nf-fade 0.2s ease-out;
+}
+
+@keyframes nf-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.nf-modal__panel {
+    position: relative;
+    width: 100%;
+    max-width: 850px;
+    background-color: #0f1623;
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    animation: nf-rise 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes nf-rise {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.nf-modal__close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(8, 11, 17, 0.8);
+    color: #fff;
+    cursor: pointer;
+}
+
+.nf-modal__art {
+    position: relative;
+    aspect-ratio: 16 / 8;
+    display: flex;
+    align-items: flex-end;
+}
+
+.nf-modal__art-fade {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 75% 25%, rgba(255, 255, 255, 0.2), transparent 50%),
+        linear-gradient(to top, #0f1623 0%, transparent 55%);
+}
+
+.nf-modal__heading {
+    position: relative;
+    padding: 0 40px 28px;
+}
+
+.nf-modal__heading h2 {
+    margin: 0 0 18px;
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+}
+
+.nf-modal__body {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 28px;
+    padding: 4px 40px 24px;
+}
+
+.nf-modal__info p {
+    margin: 14px 0 0;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.nf-modal__facts {
+    margin: 0;
+    font-size: 0.88rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nf-modal__facts div {
+    display: flex;
+    gap: 6px;
+}
+
+.nf-modal__facts dt {
+    color: var(--text-subtle);
+}
+
+.nf-modal__facts dd {
+    margin: 0;
+}
+
+.nf-modal__similar {
+    padding: 8px 40px 36px;
+}
+
+.nf-modal__similar h3 {
+    margin: 0 0 16px;
+    font-size: 1.3rem;
+}
+
+.nf-modal__similar .nf-card:hover,
+.nf-modal__similar .nf-card:focus-visible {
+    transform: scale(1.04);
+}
+
+/* ---------- Reproductor simulado ---------- */
+
+.nf-player {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background-color: #000;
+    color: #fff;
+    animation: nf-fade 0.25s ease-out;
+}
+
+.nf-player__screen {
+    position: absolute;
+    inset: 0;
+    background-size: 200% 200% !important;
+    opacity: 0.55;
+    filter: saturate(1.2);
+}
+
+.nf-player__screen.is-playing {
+    animation: nf-screen 12s ease-in-out infinite alternate;
+    opacity: 0.85;
+}
+
+@keyframes nf-screen {
+    0% { background-position: 0% 50%; filter: saturate(1.2) brightness(0.9); }
+    50% { filter: saturate(1.5) brightness(1.1); }
+    100% { background-position: 100% 50%; filter: saturate(1.2) brightness(0.95); }
+}
+
+.nf-player__top {
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.nf-player__now {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.nf-player__center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nf-player__toggle {
+    border: none;
+    background: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+.nf-player__big {
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.55);
+    font-size: 2.5rem;
+    padding-left: 4px;
+}
+
+.nf-spinner {
+    width: 64px;
+    height: 64px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: nf-spin 0.9s linear infinite;
+}
+
+@keyframes nf-spin {
+    to { transform: rotate(360deg); }
+}
+
+.nf-player__bottom {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 2;
+    padding: 24px 24px 18px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+}
+
+.nf-player__bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.nf-player__bar input[type="range"] {
+    flex: 1;
+    height: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 2px;
+    background: linear-gradient(to right, var(--primary) var(--progress), rgba(255, 255, 255, 0.3) var(--progress));
+    cursor: pointer;
+}
+
+.nf-player__bar input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--primary);
+}
+
+.nf-player__bar input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--primary);
+}
+
+.nf-player__time {
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 40px;
+    text-align: right;
+}
+
+.nf-player__controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.nf-player__label {
+    font-weight: 600;
+}
+
+.nf-player__note {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---------- Pie y aviso de estado ---------- */
+
+.nf-footer {
+    padding: 30px 4% 40px;
+    color: var(--text-subtle);
+    font-size: 0.82rem;
+}
+
+.nf-status-toast {
+    position: fixed;
+    top: 84px;
+    left: 50%;
+    z-index: 40;
+    width: auto;
+    max-width: calc(100% - 32px);
+    transform: translateX(-50%);
+    animation: nf-toast 5s ease forwards;
+    pointer-events: none;
+}
+
+@keyframes nf-toast {
+    0% { opacity: 0; transform: translate(-50%, -10px); }
+    8%, 85% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -10px); visibility: hidden; }
+}
+
+/* ---------- Responsivo ---------- */
+
+@media (max-width: 800px) {
+    .nf-nav {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        padding: 12px 16px;
+    }
+
+    .nf-logo {
+        font-size: 1.4rem;
+    }
+
+    .nf-nav__links {
+        order: 3;
+        width: 100%;
+        gap: 18px;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .nf-nav__link {
+        white-space: nowrap;
+    }
+
+    .nf-search.is-open input {
+        width: 130px;
+    }
+
+    .nf-hero {
+        min-height: 72vh;
+        padding: 0 16px 12vh;
+    }
+
+    .nf-hero__desc {
+        font-size: 0.95rem;
+    }
+
+    .nf-row__title,
+    .nf-grid-section {
+        margin-left: 16px;
+        margin-right: 16px;
+        padding: 0;
+    }
+
+    .nf-row__track {
+        padding-left: 16px;
+        padding-right: 16px;
+        scroll-padding: 0 16px;
+    }
+
+    .nf-row__arrow {
+        display: none;
+    }
+
+    .nf-card {
+        width: 160px;
+    }
+
+    .nf-card--ranked {
+        width: 190px;
+    }
+
+    .nf-card__title {
+        font-size: 0.85rem;
+    }
+
+    .nf-main--plain {
+        padding-top: 120px;
+    }
+
+    .nf-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px 8px;
+    }
+
+    .nf-modal {
+        padding: 0;
+    }
+
+    .nf-modal__panel {
+        border-radius: 0;
+        min-height: 100%;
+    }
+
+    .nf-modal__heading,
+    .nf-modal__body,
+    .nf-modal__similar {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .nf-modal__body {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .nf-player__note {
+        display: none;
+    }
+
+    .nf-status-toast {
+        top: 110px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nf-hero__glow,
+    .nf-player__screen.is-playing,
+    .nf-modal,
+    .nf-modal__panel,
+    .nf-menu {
+        animation: none;
+    }
+
+    .nf-card,
+    .nf-row__track {
+        transition: none;
+        scroll-behavior: auto;
+    }
+}

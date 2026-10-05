@@ -1,20 +1,35 @@
-<%- include('partials/header') %>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - <%= appName %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/build/browse.css">
+</head>
+<body class="browse-body">
+    <% if (status) { %>
+        <div class="toast status-toast nf-status-toast" role="status"><p><%= status %></p></div>
+    <% } %>
 
-<div class="auth-card dashboard-card" id="dashboardCard">
-    <%- include('partials/alerts') %>
+    <%# Catálogo tipo Netflix (componente React en client/browse) %>
+    <div id="browse"
+         data-user="<%= JSON.stringify({ name: user.name, email: user.email }) %>"
+         data-csrf="<%= csrfToken %>"></div>
 
-    <div class="user-avatar" aria-hidden="true"><%= user.name.trim().charAt(0).toUpperCase() %></div>
+    <noscript>
+        <div class="auth-wrapper">
+            <p>Activa JavaScript para ver el catálogo, <%= user.name %>.</p>
+            <form method="POST" action="/logout">
+                <input type="hidden" name="_token" value="<%= csrfToken %>">
+                <button type="submit" class="btn-logout">Cerrar sesión</button>
+            </form>
+        </div>
+    </noscript>
 
-    <h1 class="auth-title">Hola, <%= user.name %></h1>
-    <p class="auth-description"><%= user.email %></p>
-
-    <form method="POST" action="/logout" id="logoutForm">
-        <input type="hidden" name="_token" value="<%= csrfToken %>">
-        <button type="submit" class="btn-logout" id="btnLogout">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-            Cerrar sesión
-        </button>
-    </form>
-</div>
-
-<%- include('partials/footer') %>
+    <script src="/build/browse.js" defer></script>
+</body>
+</html>
