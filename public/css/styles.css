@@ -86,7 +86,7 @@ body.auth-body {
 }
 
 /* Tarjeta de Cristal */
-.auth-card {
+.auth-card, .admin-login {
   width: 100%;
   max-width: 420px;
   background-color: var(--card-bg);

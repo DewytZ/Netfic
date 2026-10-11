@@ -8,6 +8,7 @@ export default defineConfig({
             input: [
                 'resources/js/movie-background/main.jsx',
                 'resources/js/browse/main.jsx',
+                'resources/js/admin/main.jsx',
             ],
             refresh: true,
         }),
