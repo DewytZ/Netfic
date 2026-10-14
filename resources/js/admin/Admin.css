@@ -187,3 +187,105 @@
     opacity: 0.35;
     cursor: not-allowed;
 }
+
+/* CreateTitleForm */
+.create-title-form {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+.create-title-form h3 {
+  margin-top: 0;
+}
+.create-title-form .field {
+  margin-bottom: 0.8rem;
+}
+.create-title-form .field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.create-title-form .field input,
+.create-title-form .field select,
+.create-title-form .field textarea {
+  width: 100%;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.create-title-form .error-msg {
+  color: #c00;
+}
+.create-title-form .success-msg {
+  color: #080;
+}
+.create-title-form button {
+  margin-top: 0.5rem;
+  background: #0066cc;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.create-title-form button:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.create-title-wrapper {
+  margin: 0.5rem 0;
+}
+/* -------------------------------------------------
+   BOTÓN DE AGREGAR RECURSO
+   ------------------------------------------------- */
+.add-resource-toggle {
+  margin: 1rem 0;
+  text-align: center;
+}
+.btn-toggle {
+  background: #0066cc;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-toggle:hover {
+  background: #0055aa;
+}
+
+/* -------------------------------------------------
+   PANEL QUE CONTIENE EL FORMULARIO (animación slide)
+   ------------------------------------------------- */
+.form-panel {
+  overflow: hidden;               /* Necesario para el slide */
+  max-height: 0;                  /* Estado colapsado */
+  opacity: 0;
+  transition: max-height 0.35s ease-out,
+              opacity 0.35s ease-out;
+  margin-bottom: 1rem;
+}
+
+/* Cuando está abierto */
+.form-panel.expanded {
+  max-height: 2000px;            /* Valor suficientemente grande */
+  opacity: 1;
+}
+
+/* Opcional: ligero sombreado y fondo para separar visualmente */
+.form-panel.expanded {
+  background: #fafafa;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 1rem;
+}
+
+/* Cuando está colapsado */
+.form-panel.collapsed {
+  margin-bottom: 0;
+}

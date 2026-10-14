@@ -1,5 +1,16 @@
 <?php
 
+if (!function_exists('mb_strimwidth')) {
+    function mb_strimwidth(string $string, int $start, int $width, string $trimmarker = '', ?string $encoding = null): string {
+        $encoding = $encoding ?? 'UTF-8';
+        if (mb_strwidth($string, $encoding) <= $width) {
+            return $string;
+        }
+        $trimWidth = mb_strwidth($trimmarker, $encoding);
+        return mb_substr($string, $start, max(0, $width - $trimWidth), $encoding) . $trimmarker;
+    }
+}
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');
+        $middleware->validateCsrfTokens(except: ['api/*',]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

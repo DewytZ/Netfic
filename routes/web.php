@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\TitleController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -28,3 +29,12 @@ Route::middleware('auth')->group(function () {
 Route::get('/admin', function () {
     return view('admin.index');
 })->name('admin.index');
+
+// rutas de la API para conectar con Supabase
+Route::prefix('api')->group(function () {
+    Route::get('/titles', [TitleController::class, 'index']);   
+    Route::post('/titles', [TitleController::class, 'store']);
+    Route::delete('/titles/{id}', [TitleController::class, 'destroy']);
+    Route::put('/titles/{id}', [TitleController::class, 'update']);
+    Route::patch('/titles/{id}', [TitleController::class, 'update']);   
+});

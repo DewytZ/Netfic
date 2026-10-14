@@ -1,136 +1,188 @@
-import { useState } from "react";
-import { CATALOG } from "../browse/catalog.js";
+// resources/js/admin/TitlesTable.jsx
+import { useState, useEffect } from "react";
 import "./Admin.css";
+import CreateTitleForm from "./CreateTitleForm";
 
-export function TitlesTable(){
-    //1.- Estado para lo que el usuario escribe en el buscador (empieza vacio " ")
-    const [searchTerm, setSearchTerm] = useState('');
+export function TitlesTable() {
+  /* -------------------- ESTADOS -------------------- */
+  const [titles, setTitles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    //2.- Estado para saber en que pagina estamos (empieza en la pagina 1)
-    const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-    //3.- cuantas peliculas mostramos por pagina
-    const itemsPerPage =5;
+  // Nuevo estado: controla si el formulario está visible
+  const [showForm, setShowForm] = useState(false);
 
-    //4.- Filtrar el catalogo segun lo que el usuario eescribió
-    const filteredTitles = CATALOG.filter((item) =>{
-        const busqueda = searchTerm.toLowerCase();
-        const coincideTitulo = item.title.toLowerCase().includes(busqueda);
-        const coincideGenero = item.genre.toLowerCase().includes(busqueda);
+  /* -------------------- FETCH DE TÍTULOS -------------------- */
+  const fetchTitles = () => {
+    setLoading(true);
+    fetch("/api/titles", { method: "GET" })
+      .then((r) => r.json())
+      .then((data) => {
+        setTitles(data);
+        setLoading(false);
+      })
+      .catch((e) => {
+        console.error("Error al consultar Supabase:", e);
+        setLoading(false);
+      });
+  };
 
-        return coincideGenero || coincideTitulo
-    });
+  useEffect(() => {
+    fetchTitles();
+  }, []);
 
-    //5.- calcular el total de paginas necesarias
-    const totalPages = Math.ceil(filteredTitles.length / itemsPerPage) || 1;
+  /* -------------------- FILTRADO -------------------- */
+  const filteredTitles = titles.filter((item) => {
+    const busqueda = searchTerm.toLowerCase();
+    const coincideTitulo = item.title.toLowerCase().includes(busqueda);
+    const coincideGenero = item.genre.toLowerCase().includes(busqueda);
+    return coincideGenero || coincideTitulo;
+  });
 
-    //6.- recortar solo las peliculas de la pagina actual (recordar desde que pelicula se mostrará en la pagina)
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const currentTitles = filteredTitles.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(filteredTitles.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentTitles = filteredTitles.slice(startIndex, startIndex + itemsPerPage);
 
-    const handleSearchChange = (e) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1);
-    };
+  /* -------------------- HANDLERS -------------------- */
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
-    return (
-        <div className="admin-container">
-            {/* Encabezado y Buscador */}
-            <div className="admin-header">
-                <h2>Administración de Títulos</h2>
-                <div className="search-box">
-                    <input
-                    type="text"
-                    placeholder="Buscar por título o género..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    />
-                    {searchTerm && (
-                        <button onClick={() => { setSearchTerm(''); setCurrentPage(1);}}>
-                            Limpiar
-                        </button>
-                    )}
-                </div>
-            </div>
+  /* -------------------- RENDER -------------------- */
+  return (
+    <>
+      {/* ---------- BOTÓN DESPLEGABLE ---------- */}
+      <div className="add-resource-toggle">
+        <button
+          type="button"
+          className="btn-toggle"
+          onClick={() => setShowForm((prev) => !prev)}
+        >
+          {showForm ? "✖ Cancelar" : "➕ Agregar nuevo recurso"}
+        </button>
+      </div>
 
-            {/* TABLA DE RESULTADOS */}
-            <table className="admin-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Título</th>
-                        <th>Tipo</th>
-                        <th>Género</th>
-                        <th>Año</th>
-                        <th>Duración</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {currentTitles.length > 0 ? (
-                        currentTitles.map((item) => (
-                            <tr key={item.id}>
-                                <td>{item.id}</td>
-                                <td className="title-cell">{item.title}</td>
-                                <td>
-                                    <span className={`badge ${item.type === 'Serie' ? 'badge-serie' : 'badge-pelicula'}`}>
-                                        {item.type}
-                                    </span>    
-                                </td>
-                                <td>{item.genre}</td>
-                                <td>{item.year}</td>
-                                <td>{item.duration}</td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="6" className="no-results">
-                                No se encontraron títulos que coincidan con "{searchTerm}".
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-            <div className="admin-pagination">
-                <span className="pagination-info">
-                    Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
-                    ({filteredTitles.length} títulos)
-                </span>
+      {/* ---------- PANEL CON EL FORMULARIO ---------- */}
+      <div className={`form-panel ${showForm ? "expanded" : "collapsed"}`}>
+        {showForm && <CreateTitleForm onSuccess={fetchTitles} />}
+      </div>
 
-                <div className="pagination-buttons">
-                    {/*Botón anterior */}
-                    <button
-                        className="btn-page"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(currentPage - 1)}
-                    >
-                        &laquo; Anterior
-                    </button>
-                    {/* Botones numéricos (1, 2, 3...) */}
-                    {Array.from({length: totalPages}, (_, index) => {
-                        const pageNum = index + 1;
-                        return (
-                            <button
-                            key={pageNum}
-                            className={`btn-page ${currentPage === pageNum ? 'btn-page-active' : ''}`}
-                            onClick={() => setCurrentPage(pageNum)}
-                            >
-                                {pageNum}
-                            </button>
-                        );
-                    })}
-
-                    {/*Botón siguiente */}
-                    <button
-                        className="btn-page"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(currentPage + 1)}
-                    >
-                        Siguiente &raquo;
-                    </button>
-                </div>
-            </div>
+      {/* ---------- TABLA DE RESULTADOS ---------- */}
+      <div className="admin-container">
+        {/* Encabezado y buscador */}
+        <div className="admin-header">
+          <h2>Administración de Títulos</h2>
+          {loading && <p className="loading-msg">Cargando títulos…</p>}
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Buscar por título o género..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setCurrentPage(1);
+                }}
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
-    );
 
+        {/* Tabla */}
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Tipo</th>
+              <th>Género</th>
+              <th>Año</th>
+              <th>Duración</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentTitles.length > 0 ? (
+              currentTitles.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.id}</td>
+                  <td className="title-cell">{item.title}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        item.type === "Serie" ? "badge-serie" : "badge-pelicula"
+                      }`}
+                    >
+                      {item.type}
+                    </span>
+                  </td>
+                  <td>{item.genre}</td>
+                  <td>{item.year}</td>
+                  <td>{item.duration}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="no-results">
+                  No se encontraron títulos que coincidan con "{searchTerm}".
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
+        {/* Paginación */}
+        <div className="admin-pagination">
+          <span className="pagination-info">
+            Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+            ({filteredTitles.length} títulos)
+          </span>
+
+          <div className="pagination-buttons">
+            {/* Anterior */}
+            <button
+              className="btn-page"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              &laquo; Anterior
+            </button>
+
+            {/* Números */}
+            {Array.from({ length: totalPages }, (_, index) => {
+              const pageNum = index + 1;
+              return (
+                <button
+                  key={pageNum}
+                  className={`btn-page ${
+                    currentPage === pageNum ? "btn-page-active" : ""
+                  }`}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            {/* Siguiente */}
+            <button
+              className="btn-page"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              Siguiente &raquo;
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 }
