@@ -26,15 +26,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
+// Pendiente: el inicio de sesión de esta página lo agrega otro integrante del equipo.
 Route::get('/admin', function () {
     return view('admin.index');
 })->name('admin.index');
 
-// rutas de la API para conectar con Supabase
+// API de títulos. Cualquiera puede crear, editar y borrar; las escrituras validan el token CSRF.
 Route::prefix('api')->group(function () {
-    Route::get('/titles', [TitleController::class, 'index']);   
+    Route::get('/titles', [TitleController::class, 'index']);
     Route::post('/titles', [TitleController::class, 'store']);
-    Route::delete('/titles/{id}', [TitleController::class, 'destroy']);
-    Route::put('/titles/{id}', [TitleController::class, 'update']);
-    Route::patch('/titles/{id}', [TitleController::class, 'update']);   
+    Route::put('/titles/{title}', [TitleController::class, 'update']);
+    Route::patch('/titles/{title}', [TitleController::class, 'update']);
+    Route::delete('/titles/{title}', [TitleController::class, 'destroy']);
 });

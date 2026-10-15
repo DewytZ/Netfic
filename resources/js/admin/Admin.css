@@ -159,7 +159,7 @@
 }
 
 /*Estilos de cada boton*/
-.btn-page{
+.btn-page, .btn-edit, .btn-delete{
     background-color: #2b2b2b;
     color: #fff;
     border: 1px solid #444;
@@ -168,6 +168,10 @@
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s;
+}
+
+.btn-delete{
+    margin-left: 10px;
 }
 
 .btn-page:hover:not(:disabled){
@@ -288,4 +292,33 @@
 /* Cuando está colapsado */
 .form-panel.collapsed {
   margin-bottom: 0;
+}
+
+/* ---------- MODAL ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Botón cancelar dentro del modal */
+.btn-cancel {
+  margin-top: 1rem;
+  background: #f5f5f5;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
 }

@@ -29,7 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo('/dashboard');
-        $middleware->validateCsrfTokens(except: ['api/*',]);
+        // La API vuelve a exigir el token CSRF: el panel de admin lo envía en la cabecera X-CSRF-TOKEN.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

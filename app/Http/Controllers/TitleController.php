@@ -2,52 +2,47 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TitleRequest;
 use App\Models\Title;
-use Illuminate\Http\Request;
 
 class TitleController extends Controller
 {
-    //1.- GET. devuelve todas las peliculas
+    // GET. Devuelve todos los títulos.
     public function index()
     {
         return response()->json(Title::orderBy('id')->get());
     }
 
-    //2.- POST. recibe todos los datos del formulario y crea un titulo nuevo en supabase
-    public function store(Request $request)
-{
-    // --- Validación condicional ---
-    $rules = [
-        'title'       => 'required|string|max:255',
-        'type'        => 'required|in:Película,Serie',
-        'genre'       => 'required|string|max:100',
-        'year'        => 'required|integer|min:1900|max:2099',
-        'description' => 'nullable|string',
-        'maturity'    => 'nullable|string|max:10',
-        'colors'      => 'nullable|string',
-    ];
-    if ($request->type === 'Película') {
-        $rules['duration'] = 'required|string|max:50';
-        $rules['seasons']  = 'nullable|integer|min:1';
-    } else { // Serie
-        $rules['duration'] = 'nullable|string|max:50';
-        $rules['seasons']  = 'required|integer|min:1';
-    }
-    $validated = $request->validate($rules);
-    // -----------------------------------
-    // se guarda en supabase
-    $title = Title::create($validated);
-    // devolvemos el título recién creado con código 201
-    return response()->json($title, 201);
-}
-
-    
-    //3. DELETE. elimina un titulo por su id 
-    public function destroy(string $id)
+    // POST. Valida los datos y crea un título nuevo. Responde 201 con el registro creado.
+    public function store(TitleRequest $request)
     {
-        $title = Title::findOrFail($id);
+        $title = Title::create($request->validated());
+
+        return response()->json($title, 201);
+    }
+
+    // PUT/PATCH. Actualiza un título. Laravel busca el registro por su id (route model binding).
+    public function update(TitleRequest $request, Title $title)
+    {
+        $data = $request->validated();
+
+        // Si cambia de Serie a Película no debe quedar un número de temporadas, y al revés.
+        if ($data['type'] === 'Película') {
+            $data['seasons'] = null;
+        } else {
+            $data['duration'] = null;
+        }
+
+        $title->update($data);
+
+        return response()->json($title);
+    }
+
+    // DELETE. Elimina un título. Responde 204 (sin contenido).
+    public function destroy(Title $title)
+    {
         $title->delete();
 
-        return response()->json(['message' => 'Título eliminado con éxito']);
+        return response()->noContent();
     }
 }

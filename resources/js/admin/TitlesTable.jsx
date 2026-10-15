@@ -2,11 +2,22 @@
 import { useState, useEffect } from "react";
 import "./Admin.css";
 import CreateTitleForm from "./CreateTitleForm";
+import { csrfToken } from "./csrf.js";
+
+// Las películas muestran su duración; las series, su número de temporadas.
+// Los títulos de series guardados antes tenían las temporadas escritas en "duration", por eso ese es el respaldo.
+function formatDurationCell(item) {
+  if (item.type === "Serie" && item.seasons) {
+    return `${item.seasons} ${item.seasons === 1 ? "temporada" : "temporadas"}`;
+  }
+  return item.duration ?? "—";
+}
 
 export function TitlesTable() {
   /* -------------------- ESTADOS -------------------- */
   const [titles, setTitles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -15,17 +26,28 @@ export function TitlesTable() {
   // Nuevo estado: controla si el formulario está visible
   const [showForm, setShowForm] = useState(false);
 
+  // guarda el titulo a editar
+  const [editingTitle, setEditingTitle] = useState(null);
+
+  // estado para mostrar o ocultar el panel de edicion
+  const [showEditModal, setShowEditModal] = useState(false);
+
   /* -------------------- FETCH DE TÍTULOS -------------------- */
   const fetchTitles = () => {
     setLoading(true);
-    fetch("/api/titles", { method: "GET" })
-      .then((r) => r.json())
+    fetch("/api/titles", { method: "GET", headers: { Accept: "application/json" } })
+      .then((r) => {
+        if (!r.ok) throw new Error("No se pudieron cargar los títulos. Intenta recargar la página.");
+        return r.json();
+      })
       .then((data) => {
         setTitles(data);
+        setLoadError(null);
         setLoading(false);
       })
       .catch((e) => {
-        console.error("Error al consultar Supabase:", e);
+        console.error("Error al cargar los títulos:", e);
+        setLoadError(e.message);
         setLoading(false);
       });
   };
@@ -46,10 +68,37 @@ export function TitlesTable() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentTitles = filteredTitles.slice(startIndex, startIndex + itemsPerPage);
 
+  // Si borras el último título de la última página, regresamos a la página anterior.
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   /* -------------------- HANDLERS -------------------- */
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
+  };
+//Eliminar titulo
+  const handleDeleteClick = async (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar este título?')) return;
+  try {
+    
+    const res = await fetch(`/api/titles/${id}`, {
+      method: 'DELETE',
+      headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+    });
+    if (!res.ok) throw new Error('No se pudo eliminar el título');
+    // Si la eliminación fue exitosa, refrescamos la lista.
+    fetchTitles();
+  } catch (err) {
+    alert(err.message);
+    }
+  };
+
+  const handleEditClick = (title) => {
+  // Guardamos el registro que se quiere editar y abrimos el modal.
+  setEditingTitle(title);
+  setShowEditModal(true);
   };
 
   /* -------------------- RENDER -------------------- */
@@ -77,6 +126,7 @@ export function TitlesTable() {
         <div className="admin-header">
           <h2>Administración de Títulos</h2>
           {loading && <p className="loading-msg">Cargando títulos…</p>}
+          {loadError && <p className="error-msg">{loadError}</p>}
           <div className="search-box">
             <input
               type="text"
@@ -107,6 +157,7 @@ export function TitlesTable() {
               <th>Género</th>
               <th>Año</th>
               <th>Duración</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -126,12 +177,25 @@ export function TitlesTable() {
                   </td>
                   <td>{item.genre}</td>
                   <td>{item.year}</td>
-                  <td>{item.duration}</td>
+                  <td>{formatDurationCell(item)}</td>
+                  <td className="action-cell">
+                    <button className="btn-edit"
+                    onClick={() => handleEditClick(item)}
+                    >
+                      Editar
+                    </button>
+
+                    <button className="btn-delete"
+                    onClick={() => handleDeleteClick(item.id)}>
+                      Eliminar
+                    </button>
+
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="no-results">
+                <td colSpan="7" className="no-results">
                   No se encontraron títulos que coincidan con "{searchTerm}".
                 </td>
               </tr>
@@ -183,6 +247,37 @@ export function TitlesTable() {
           </div>
         </div>
       </div>
+      {/* ---------- MODAL DE EDICIÓN ---------- */}
+{showEditModal && editingTitle && (
+  <div className="modal-overlay">
+    <div className="modal-content">
+      <h3>Editar título</h3>
+
+      {/* Reutilizamos el mismo formulario. Le pasamos los datos del registro
+          a través de `initialData`. */}
+      <CreateTitleForm
+        key={editingTitle.id}
+        onSuccess={() => {
+          // al guardar, cerramos el modal y refrescamos la tabla
+          setShowEditModal(false);
+          setEditingTitle(null);
+          fetchTitles();
+        }}
+        initialData={editingTitle}
+      />
+
+      <button
+        className="btn-cancel"
+        onClick={() => {
+          setShowEditModal(false);
+          setEditingTitle(null);
+        }}
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+)}
     </>
   );
 }
