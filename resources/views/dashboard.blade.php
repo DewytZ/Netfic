@@ -19,7 +19,8 @@
     {{-- Catálogo tipo Netflix (componente React en resources/js/browse) --}}
     <div id="browse"
          data-user="{{ json_encode(['name' => auth()->user()->name, 'email' => auth()->user()->email]) }}"
-         data-csrf="{{ csrf_token() }}"></div>
+         data-csrf="{{ csrf_token() }}"
+         data-titles="{{ $titles->toJson() }}"></div>
 
     <noscript>
         <div class="auth-wrapper">

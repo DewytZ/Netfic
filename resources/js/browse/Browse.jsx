@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CATALOG, HOME_ROWS } from './catalog.js';
+import { buildCatalog, buildHomeRows } from './catalog.js';
 import './Browse.css';
 
 const MY_LIST_KEY = 'netfic:my-list';
@@ -316,10 +316,10 @@ function useOverlay(onClose) {
     return closeRef;
 }
 
-function DetailModal({ item, inList, onToggleList, onPlay, onOpen, onClose }) {
+function DetailModal({ item, catalog, inList, onToggleList, onPlay, onOpen, onClose }) {
     const closeRef = useOverlay(onClose);
-    const similar = CATALOG.filter((other) => other.genre === item.genre && other.id !== item.id)
-        .concat(CATALOG.filter((other) => other.type === item.type && other.genre !== item.genre))
+    const similar = catalog.filter((other) => other.genre === item.genre && other.id !== item.id)
+        .concat(catalog.filter((other) => other.type === item.type && other.genre !== item.genre))
         .slice(0, 6);
 
     return (
@@ -469,18 +469,22 @@ function Player({ item, onClose }) {
 
 /* ---------- Página ---------- */
 
-export default function Browse({ user, csrfToken }) {
+export default function Browse({ user, csrfToken, titles }) {
     const [section, setSection] = useState('home');
     const [query, setQuery] = useState('');
     const [detail, setDetail] = useState(null);
     const [playing, setPlaying] = useState(null);
     const myList = useMyList();
 
+    // Todos los títulos de la base de datos (películas y series).
+    const catalog = useMemo(() => buildCatalog(titles), [titles]);
+    const homeRows = useMemo(() => buildHomeRows(catalog), [catalog]);
+
     // Destacado al azar en cada visita, como la portada de Netflix.
     const featured = useMemo(() => {
-        const options = CATALOG.filter((item) => item.year >= 2024);
+        const options = catalog.filter((item) => item.year >= 2024);
         return options[Math.floor(Math.random() * options.length)];
-    }, []);
+    }, [catalog]);
 
     useEffect(() => {
         window.scrollTo({ top: 0 });
@@ -490,10 +494,10 @@ export default function Browse({ user, csrfToken }) {
     const closePlayer = useCallback(() => setPlaying(null), []);
     const play = useCallback((item) => { setDetail(null); setPlaying(item); }, []);
 
-    const listItems = myList.ids.map((id) => CATALOG.find((item) => item.id === id)).filter(Boolean);
+    const listItems = myList.ids.map((id) => catalog.find((item) => item.id === id)).filter(Boolean);
     const term = query.trim().toLowerCase();
     const results = term
-        ? CATALOG.filter((item) => `${item.title} ${item.genre} ${item.type}`.toLowerCase().includes(term))
+        ? catalog.filter((item) => `${item.title} ${item.genre} ${item.type}`.toLowerCase().includes(term))
         : [];
 
     let content;
@@ -505,7 +509,7 @@ export default function Browse({ user, csrfToken }) {
         const type = { series: 'Serie', movies: 'Película' }[section];
         const rows = [
             ...(listItems.length && !type ? [{ id: 'my-list', title: 'Mi lista', items: listItems }] : []),
-            ...HOME_ROWS,
+            ...homeRows,
         ]
             .map((row) => {
                 if (!type) return row;
@@ -514,11 +518,11 @@ export default function Browse({ user, csrfToken }) {
             })
             .filter((row) => row.items.length >= 2);
 
-        const heroItem = type && featured.type !== type ? CATALOG.find((item) => item.type === type && item.year >= 2024) : featured;
+        const heroItem = type && featured?.type !== type ? catalog.find((item) => item.type === type && item.year >= 2024) : featured;
 
         content = (
             <>
-                <Hero item={heroItem} onPlay={play} onInfo={setDetail} />
+                {heroItem && <Hero item={heroItem} onPlay={play} onInfo={setDetail} />}
                 <div className="nf-rows">
                     {rows.map((row) => <Row key={`${section}-${row.id}`} row={row} onOpen={setDetail} />)}
                 </div>
@@ -536,6 +540,7 @@ export default function Browse({ user, csrfToken }) {
                 <DetailModal
                     key={detail.id}
                     item={detail}
+                    catalog={catalog}
                     inList={myList.has(detail.id)}
                     onToggleList={myList.toggle}
                     onPlay={play}

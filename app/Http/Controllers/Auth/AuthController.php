@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Title;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,10 @@ class AuthController extends Controller
 
     public function dashboard(): View
     {
-        return view('dashboard');
+        // Todo el catálogo (películas y series) sale de la base de datos (tabla titles).
+        $titles = Title::orderBy('id')
+            ->get(['id', 'title', 'type', 'genre', 'year', 'duration', 'seasons', 'maturity', 'description', 'colors']);
+
+        return view('dashboard', ['titles' => $titles]);
     }
 }

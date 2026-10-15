@@ -5,5 +5,7 @@ const container = document.getElementById('browse');
 
 if (container) {
     const user = JSON.parse(container.dataset.user);
-    createRoot(container).render(<Browse user={user} csrfToken={container.dataset.csrf} />);
+    // Títulos de la base de datos (los manda DashboardController en data-titles).
+    const titles = JSON.parse(container.dataset.titles || '[]');
+    createRoot(container).render(<Browse user={user} csrfToken={container.dataset.csrf} titles={titles} />);
 }
