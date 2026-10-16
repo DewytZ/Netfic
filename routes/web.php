@@ -26,16 +26,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// Pendiente: el inicio de sesión de esta página lo agrega otro integrante del equipo.
-Route::get('/admin', function () {
-    return view('admin.index');
-})->name('admin.index');
+// Panel de administración y API de títulos: solo administradores (rol "admin" en la tabla users).
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', fn () => view('admin.index'))->name('admin.index');
 
-// API de títulos. Cualquiera puede crear, editar y borrar; las escrituras validan el token CSRF.
-Route::prefix('api')->group(function () {
-    Route::get('/titles', [TitleController::class, 'index']);
-    Route::post('/titles', [TitleController::class, 'store']);
-    Route::put('/titles/{title}', [TitleController::class, 'update']);
-    Route::patch('/titles/{title}', [TitleController::class, 'update']);
-    Route::delete('/titles/{title}', [TitleController::class, 'destroy']);
+    // Las escrituras también validan el token CSRF (el panel lo envía en la cabecera X-CSRF-TOKEN).
+    Route::prefix('api')->group(function () {
+        Route::get('/titles', [TitleController::class, 'index']);
+        Route::post('/titles', [TitleController::class, 'store']);
+        Route::put('/titles/{title}', [TitleController::class, 'update']);
+        Route::patch('/titles/{title}', [TitleController::class, 'update']);
+        Route::delete('/titles/{title}', [TitleController::class, 'destroy']);
+    });
 });

@@ -14,7 +14,8 @@
     @vite('resources/js/admin/main.jsx')
 </head>
 <body style="background-color: #141414; margin: 0; min-height: 100vh;">
-    {{-- Aquí es donde React va a inyectar tu TitlesTable --}}
-    <div id="admin-root"></div>
+    {{-- Aquí React inyecta la barra superior y la tabla de títulos --}}
+    <div id="admin-root"
+         data-user="{{ json_encode(['name' => auth()->user()->name, 'email' => auth()->user()->email]) }}"></div>
 </body>
 </html>

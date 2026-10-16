@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Auth\CachedUserProvider;
+use App\Support\SupabaseSecurity;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Auth::provider('cached-eloquent', fn ($app, array $config) => new CachedUserProvider($app['hash'], $config['model']));
         Event::listen(Login::class, fn (Login $event) => CachedUserProvider::remember($event->user));
+
+        // Las tablas nuevas de cada migración también quedan fuera de la API de Supabase.
+        Event::listen(MigrationsEnded::class, fn () => SupabaseSecurity::lockDownPublicSchema());
 
         // Máximo 5 intentos por minuto por IP en el login y en "olvidé mi contraseña".
         RateLimiter::for('auth', function (Request $request) {

@@ -30,6 +30,7 @@ const SearchIcon = () => <Icon><circle cx="11" cy="11" r="7" /><path d="m20 20-3
 const ChevronIcon = ({ dir }) => <Icon size={28}>{dir === 'left' ? <path d="m15 18-6-6 6-6" /> : <path d="m9 18 6-6-6-6" />}</Icon>;
 const BackIcon = () => <Icon size={28}><path d="M19 12H5M12 19l-7-7 7-7" /></Icon>;
 const LogoutIcon = () => <Icon size={18}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></Icon>;
+const AdminIcon = () => <Icon size={18}><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z" /><path d="M9 12l2 2 4-4" /></Icon>;
 
 /* ---------- "Mi lista" guardada en el navegador ---------- */
 
@@ -153,6 +154,12 @@ function Navbar({ user, csrfToken, section, onSection, query, onQuery }) {
                                     <span>{user.email}</span>
                                 </div>
                             </div>
+                            {user.isAdmin && (
+                                <a href="/admin" className="nf-menu__logout nf-menu__admin" role="menuitem">
+                                    <AdminIcon />
+                                    Panel de administración
+                                </a>
+                            )}
                             <form method="POST" action="/logout">
                                 <input type="hidden" name="_token" value={csrfToken} />
                                 <button type="submit" className="nf-menu__logout" role="menuitem">

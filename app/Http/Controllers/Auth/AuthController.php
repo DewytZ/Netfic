@@ -44,7 +44,10 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        // Si venía de una página protegida vuelve ahí; si no, los admins entran a su panel.
+        $home = $request->user()->isAdmin() ? route('admin.index') : route('dashboard');
+
+        return redirect()->intended($home);
     }
 
     public function logout(Request $request): RedirectResponse

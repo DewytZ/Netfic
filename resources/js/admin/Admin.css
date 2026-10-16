@@ -322,3 +322,86 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
 }
+/* ---------- Barra superior del panel ---------- */
+.admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 4%;
+    background-color: #0b0b0b;
+    border-bottom: 1px solid #262626;
+    font-family: 'Inter', sans-serif;
+    color: #f8fafc;
+}
+
+.admin-topbar__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+.admin-topbar__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #6366f1;
+    box-shadow: 0 0 10px #6366f1;
+}
+
+.admin-topbar__badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.admin-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.9rem;
+}
+
+.admin-topbar__user {
+    color: #94a3b8;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-topbar__link {
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+.admin-topbar__link:hover {
+    text-decoration: underline;
+}
+
+.admin-topbar__logout {
+    padding: 8px 14px;
+    border: 1px solid #3f3f46;
+    border-radius: 8px;
+    background: none;
+    color: #f8fafc;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-topbar__logout:hover {
+    border-color: #ef4444;
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.1);
+}

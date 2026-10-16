@@ -41,16 +41,44 @@ class TitleCrudTest extends TestCase
         ], $overrides);
     }
 
-    public function test_guests_can_create_titles(): void
+    public function test_guests_cannot_use_the_titles_api(): void
     {
-        $this->postJson('/api/titles', $this->movieData())->assertCreated();
+        $title = Title::create($this->movieData());
 
-        $this->assertDatabaseHas('titles', ['title' => 'Pulso']);
+        $this->getJson('/api/titles')->assertUnauthorized();
+        $this->postJson('/api/titles', $this->movieData(['title' => 'Otra']))->assertUnauthorized();
+        $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertUnauthorized();
+        $this->deleteJson("/api/titles/{$title->id}")->assertUnauthorized();
+
+        $this->assertDatabaseMissing('titles', ['title' => 'Otra']);
+        $this->assertDatabaseHas('titles', ['id' => $title->id, 'title' => 'Pulso']);
+    }
+
+    public function test_regular_users_cannot_use_the_titles_api(): void
+    {
+        $title = Title::create($this->movieData());
+        $this->actingAs(User::factory()->create());
+
+        $this->getJson('/api/titles')->assertForbidden();
+        $this->postJson('/api/titles', $this->movieData(['title' => 'Otra']))->assertForbidden();
+        $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertForbidden();
+        $this->deleteJson("/api/titles/{$title->id}")->assertForbidden();
+
+        $this->assertDatabaseMissing('titles', ['title' => 'Otra']);
+        $this->assertDatabaseHas('titles', ['id' => $title->id, 'title' => 'Pulso']);
+    }
+
+    public function test_admin_lists_titles(): void
+    {
+        Title::create($this->movieData());
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->getJson('/api/titles')->assertOk()->assertJsonPath('0.title', 'Pulso');
     }
 
     public function test_user_creates_a_movie(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->postJson('/api/titles', $this->movieData())
             ->assertCreated()
@@ -61,7 +89,7 @@ class TitleCrudTest extends TestCase
 
     public function test_user_creates_a_series_without_duration(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->postJson('/api/titles', $this->seriesData())->assertCreated();
 
@@ -70,7 +98,7 @@ class TitleCrudTest extends TestCase
 
     public function test_a_movie_requires_duration(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->postJson('/api/titles', $this->movieData(['duration' => null]))
             ->assertUnprocessable()
@@ -79,7 +107,7 @@ class TitleCrudTest extends TestCase
 
     public function test_a_series_requires_seasons(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->postJson('/api/titles', $this->seriesData(['seasons' => null]))
             ->assertUnprocessable()
@@ -88,7 +116,7 @@ class TitleCrudTest extends TestCase
 
     public function test_year_must_be_between_1900_and_2099(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->postJson('/api/titles', $this->movieData(['year' => 1800]))
             ->assertUnprocessable()
@@ -97,7 +125,7 @@ class TitleCrudTest extends TestCase
 
     public function test_user_updates_a_title(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
         $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Pulso Editado', 'genre' => 'Drama']))
@@ -110,7 +138,7 @@ class TitleCrudTest extends TestCase
 
     public function test_changing_to_a_series_clears_the_duration(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
         $this->putJson("/api/titles/{$title->id}", $this->seriesData(['duration' => '1 h 43 min']))
@@ -121,7 +149,7 @@ class TitleCrudTest extends TestCase
 
     public function test_user_deletes_a_title(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
         $this->deleteJson("/api/titles/{$title->id}")->assertNoContent();
@@ -131,7 +159,7 @@ class TitleCrudTest extends TestCase
 
     public function test_updating_or_deleting_a_missing_title_returns_404(): void
     {
-        $this->actingAs(User::factory()->create());
+        $this->actingAs(User::factory()->admin()->create());
 
         $this->putJson('/api/titles/999', $this->movieData())->assertNotFound();
         $this->deleteJson('/api/titles/999')->assertNotFound();

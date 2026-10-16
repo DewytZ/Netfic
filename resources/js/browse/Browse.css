@@ -246,6 +246,15 @@ body.nf-lock {
     background-color: rgba(239, 68, 68, 0.1);
 }
 
+a.nf-menu__admin {
+    text-decoration: none;
+}
+
+a.nf-menu__admin:hover {
+    color: #a5b4fc;
+    background-color: rgba(99, 102, 241, 0.12);
+}
+
 /* ---------- Portada ---------- */
 
 .nf-hero {
