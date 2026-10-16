@@ -166,7 +166,7 @@ export default function CreateTitleForm({ initialData, onSuccess }) {
         {successMsg && <p className="success-msg">{successMsg}</p>}
 
         {/* ----- Campos ----- */}
-        <div className="field">
+        <div className="field field--full">
           <label>Título</label>
           <input name="title" value={form.title} onChange={handleChange} required />
         </div>
@@ -245,7 +245,7 @@ export default function CreateTitleForm({ initialData, onSuccess }) {
           </div>
         )}
 
-        <div className="field">
+        <div className="field field--full">
           <label>Descripción (opcional)</label>
           <textarea
             name="description"
@@ -264,7 +264,7 @@ export default function CreateTitleForm({ initialData, onSuccess }) {
           </select>
         </div>
 
-        <div className="field">
+        <div className="field field--full">
           <label>Colores (opcional)</label>
           <input
             name="colors"

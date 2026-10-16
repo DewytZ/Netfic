@@ -8,12 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {{-- Mismos tokens de color que el catálogo y el login --}}
+    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
     
     {{-- Vite: Magia de actualización en tiempo real --}}
     @viteReactRefresh
     @vite('resources/js/admin/main.jsx')
 </head>
-<body style="background-color: #141414; margin: 0; min-height: 100vh;">
+<body class="admin-body">
     {{-- Aquí React inyecta la barra superior y la tabla de títulos --}}
     <div id="admin-root"
          data-user="{{ json_encode(['name' => auth()->user()->name, 'email' => auth()->user()->email]) }}"></div>

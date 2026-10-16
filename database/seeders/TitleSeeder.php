@@ -12,10 +12,7 @@ class TitleSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Limpiamos la tabla primero por si acaso
-        Title::truncate();
-
-        // 2. Lista completa con las 30 películas y series de Netfic
+        // Lista completa con las 30 películas y series de Netfic
         $titles = [
             // Películas
             ['title' => 'La Última Frontera', 'type' => 'Película', 'genre' => 'Ciencia ficción', 'year' => 2025, 'duration' => '2 h 08 min', 'maturity' => '13+', 'description' => 'Una tripulación varada en el borde del sistema solar recibe una señal que no debería existir.', 'colors' => ['#1e3a8a', '#7c3aed']],
@@ -52,9 +49,10 @@ class TitleSeeder extends Seeder
             ['title' => 'Amor en Línea', 'type' => 'Serie', 'genre' => 'Romance', 'year' => 2025, 'seasons' => 1, 'maturity' => '13+', 'description' => 'Una app de citas empareja a dos personas que se odian en la vida real.', 'colors' => ['#db2777', '#500724']],
         ];
 
-        // 3. Insertamos cada título en Supabase
+        // Crea cada título o lo actualiza si ya existe (se busca por nombre).
+        // Así se puede ejecutar varias veces sin duplicar ni borrar los títulos que se agregaron desde el panel.
         foreach ($titles as $data) {
-            Title::create($data);
+            Title::updateOrCreate(['title' => $data['title']], $data);
         }
     }
 }

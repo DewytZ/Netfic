@@ -129,7 +129,8 @@ export function TitlesTable() {
           {loadError && <p className="error-msg">{loadError}</p>}
           <div className="search-box">
             <input
-              type="text"
+              type="search"
+              aria-label="Buscar por título o género"
               placeholder="Buscar por título o género..."
               value={searchTerm}
               onChange={handleSearchChange}
@@ -164,9 +165,9 @@ export function TitlesTable() {
             {currentTitles.length > 0 ? (
               currentTitles.map((item) => (
                 <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td className="title-cell">{item.title}</td>
-                  <td>
+                  <td data-label="ID">{item.id}</td>
+                  <td className="title-cell" data-label="Título">{item.title}</td>
+                  <td data-label="Tipo">
                     <span
                       className={`badge ${
                         item.type === "Serie" ? "badge-serie" : "badge-pelicula"
@@ -175,9 +176,9 @@ export function TitlesTable() {
                       {item.type}
                     </span>
                   </td>
-                  <td>{item.genre}</td>
-                  <td>{item.year}</td>
-                  <td>{formatDurationCell(item)}</td>
+                  <td data-label="Género">{item.genre}</td>
+                  <td data-label="Año">{item.year}</td>
+                  <td data-label="Duración">{formatDurationCell(item)}</td>
                   <td className="action-cell">
                     <button className="btn-edit"
                     onClick={() => handleEditClick(item)}
@@ -206,7 +207,7 @@ export function TitlesTable() {
         {/* Paginación */}
         <div className="admin-pagination">
           <span className="pagination-info">
-            Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>
+            Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong>{" "}
             ({filteredTitles.length} títulos)
           </span>
 
@@ -250,8 +251,8 @@ export function TitlesTable() {
       {/* ---------- MODAL DE EDICIÓN ---------- */}
 {showEditModal && editingTitle && (
   <div className="modal-overlay">
-    <div className="modal-content">
-      <h3>Editar título</h3>
+    <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="edit-title-heading">
+      <h3 id="edit-title-heading">Editar título</h3>
 
       {/* Reutilizamos el mismo formulario. Le pasamos los datos del registro
           a través de `initialData`. */}
