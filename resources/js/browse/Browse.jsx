@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { buildCatalog, buildHomeRows } from './catalog.js';
+import {
+    EMPTY_FILTERS, SORT_OPTIONS, SOURCE_OPTIONS,
+    buildCatalog, buildContentCatalog, buildHomeRows, decadesOf, filterCatalog, genreCounts, hasActiveFilters, isPlayable,
+} from './catalog.js';
+import { useOverlay } from './overlay.js';
+import Player from './Player.jsx';
 import './Browse.css';
 
 const MY_LIST_KEY = 'netfic:my-list';
@@ -8,10 +13,22 @@ const SECTIONS = [
     { id: 'home', label: 'Inicio' },
     { id: 'series', label: 'Series' },
     { id: 'movies', label: 'Películas' },
+    { id: 'explore', label: 'Explorar' },
     { id: 'my-list', label: 'Mi lista' },
 ];
 
-const art = (item, angle = 160) => ({ background: `linear-gradient(${angle}deg, ${item.colors[0]}, ${item.colors[1]})` });
+// Tipo de título que muestra cada sección (las demás muestran todo).
+const SECTION_TYPE = { series: 'Serie', movies: 'Película' };
+
+// Carátula: el póster real si existe (contenido de MongoDB), sobre el degradado de colores.
+const art = (item, angle = 160) => {
+    const gradient = `linear-gradient(${angle}deg, ${item.colors[0]}, ${item.colors[1]})`;
+    return {
+        background: item.poster
+            ? `linear-gradient(to top, rgba(0,0,0,.75), rgba(0,0,0,.1) 60%), url("${encodeURI(item.poster)}") center / cover no-repeat, ${gradient}`
+            : gradient,
+    };
+};
 
 /* ---------- Íconos ---------- */
 
@@ -21,14 +38,12 @@ const Icon = ({ children, size = 20 }) => (
     </svg>
 );
 const PlayIcon = ({ size }) => <svg viewBox="0 0 24 24" width={size ?? 20} height={size ?? 20} fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.5-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5z" /></svg>;
-const PauseIcon = () => <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>;
 const InfoIcon = () => <Icon><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></Icon>;
 const PlusIcon = () => <Icon><path d="M12 5v14M5 12h14" /></Icon>;
 const CheckIcon = () => <Icon><path d="M20 6 9 17l-5-5" /></Icon>;
 const CloseIcon = () => <Icon><path d="M18 6 6 18M6 6l12 12" /></Icon>;
 const SearchIcon = () => <Icon><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></Icon>;
 const ChevronIcon = ({ dir }) => <Icon size={28}>{dir === 'left' ? <path d="m15 18-6-6 6-6" /> : <path d="m9 18 6-6-6-6" />}</Icon>;
-const BackIcon = () => <Icon size={28}><path d="M19 12H5M12 19l-7-7 7-7" /></Icon>;
 const LogoutIcon = () => <Icon size={18}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><path d="M16 17l5-5-5-5" /><path d="M21 12H9" /></Icon>;
 const AdminIcon = () => <Icon size={18}><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z" /><path d="M9 12l2 2 4-4" /></Icon>;
 
@@ -301,32 +316,61 @@ function Grid({ title, items, empty, onOpen }) {
     );
 }
 
-/* ---------- Capas: ficha de detalle y reproductor ---------- */
+/* ---------- Filtros: género, década, origen y orden ---------- */
 
-function useOverlay(onClose) {
-    const closeRef = useRef(null);
+function FilterBar({ catalog, filters, onChange }) {
+    const genres = useMemo(() => genreCounts(catalog), [catalog]);
+    const decades = useMemo(() => decadesOf(catalog), [catalog]);
+    const set = (key) => (event) => onChange({ ...filters, [key]: event.target.value });
+    const toggleGenre = (genre) => onChange({ ...filters, genre: filters.genre === genre ? '' : genre });
 
-    useEffect(() => {
-        const previous = document.activeElement;
-        const onKey = (event) => event.key === 'Escape' && onClose();
-        document.body.classList.add('nf-lock');
-        document.addEventListener('keydown', onKey);
-        closeRef.current?.focus();
-
-        return () => {
-            document.body.classList.remove('nf-lock');
-            document.removeEventListener('keydown', onKey);
-            previous?.focus?.();
-        };
-    }, [onClose]);
-
-    return closeRef;
+    return (
+        <div className="nf-filters" role="search" aria-label="Filtrar catálogo">
+            <div className="nf-filters__selects">
+                <select className="nf-select" aria-label="Género" value={filters.genre} onChange={set('genre')}>
+                    <option value="">Todos los géneros</option>
+                    {genres.map(({ genre, count }) => <option key={genre} value={genre}>{genre} ({count})</option>)}
+                </select>
+                <select className="nf-select" aria-label="Década" value={filters.decade} onChange={set('decade')}>
+                    <option value="">Cualquier época</option>
+                    {decades.map((decade) => <option key={decade} value={decade}>Años {String(decade).slice(2)} ({decade})</option>)}
+                </select>
+                <select className="nf-select" aria-label="Origen" value={filters.source} onChange={set('source')}>
+                    {SOURCE_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                </select>
+                <select className="nf-select" aria-label="Ordenar" value={filters.sort} onChange={set('sort')}>
+                    {SORT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
+                </select>
+                {hasActiveFilters(filters) && (
+                    <button type="button" className="nf-filters__clear" onClick={() => onChange(EMPTY_FILTERS)}>
+                        Limpiar filtros
+                    </button>
+                )}
+            </div>
+            <div className="nf-chips" aria-label="Géneros">
+                {genres.map(({ genre }) => (
+                    <button
+                        key={genre}
+                        type="button"
+                        className={`nf-chip${filters.genre === genre ? ' is-active' : ''}`}
+                        aria-pressed={filters.genre === genre}
+                        onClick={() => toggleGenre(genre)}
+                    >
+                        {genre}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 }
+
+/* ---------- Capas: ficha de detalle y reproductor ---------- */
 
 function DetailModal({ item, catalog, inList, onToggleList, onPlay, onOpen, onClose }) {
     const closeRef = useOverlay(onClose);
-    const similar = catalog.filter((other) => other.genre === item.genre && other.id !== item.id)
-        .concat(catalog.filter((other) => other.type === item.type && other.genre !== item.genre))
+    const sharesGenre = (other) => other.genres.some((genre) => item.genres.includes(genre));
+    const similar = catalog.filter((other) => other.id !== item.id && sharesGenre(other))
+        .concat(catalog.filter((other) => other.id !== item.id && other.type === item.type && !sharesGenre(other)))
         .slice(0, 6);
 
     return (
@@ -369,10 +413,45 @@ function DetailModal({ item, catalog, inList, onToggleList, onPlay, onOpen, onCl
                         <p>{item.description}</p>
                     </div>
                     <dl className="nf-modal__facts">
-                        <div><dt>Género:</dt><dd>{item.genre}</dd></div>
+                        <div><dt>{item.genres.length > 1 ? 'Géneros:' : 'Género:'}</dt><dd>{item.genres.join(', ') || item.genre}</dd></div>
                         <div><dt>Tipo:</dt><dd>{item.type}</dd></div>
+                        {item.channel && (
+                            // Crédito al canal dueño del video (frutinovelas de YouTube).
+                            <div>
+                                <dt>Canal:</dt>
+                                <dd>
+                                    {item.channelUrl
+                                        ? <a href={item.channelUrl} target="_blank" rel="noopener noreferrer">{item.channel}</a>
+                                        : item.channel}
+                                </dd>
+                            </div>
+                        )}
                     </dl>
                 </div>
+
+                {item.episodes?.length > 1 && (
+                    <div className="nf-modal__episodes">
+                        <h3>Capítulos <span>{item.episodes.length}</span></h3>
+                        <ol>
+                            {item.episodes.map((ep, i) => (
+                                <li key={`${ep.videoId ?? ep.videoUrl}-${ep.start ?? 0}`}>
+                                    <button type="button" onClick={() => onPlay(item, i)}>
+                                        <span className="nf-modal__ep-num">{ep.number ?? i + 1}</span>
+                                        <span
+                                            className="nf-modal__ep-thumb"
+                                            style={ep.thumbnail ? { backgroundImage: `url("${encodeURI(ep.thumbnail)}")` } : art(item)}
+                                            aria-hidden="true"
+                                        >
+                                            <PlayIcon size={18} />
+                                        </span>
+                                        <span className="nf-modal__ep-title">{ep.title}</span>
+                                        {ep.duration && <span className="nf-modal__ep-time">{ep.duration} min</span>}
+                                    </button>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                )}
 
                 <div className="nf-modal__similar">
                     <h3>Títulos similares</h3>
@@ -385,135 +464,73 @@ function DetailModal({ item, catalog, inList, onToggleList, onPlay, onOpen, onCl
     );
 }
 
-const formatTime = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
-const SIMULATED_LENGTH = 90; // El "capítulo" dura 90 s para que la simulación se vea avanzar.
-
-function Player({ item, onClose }) {
-    const closeRef = useOverlay(onClose);
-    const [loading, setLoading] = useState(true);
-    const [playing, setPlaying] = useState(true);
-    const [time, setTime] = useState(0);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 1500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    useEffect(() => {
-        if (loading || !playing) return undefined;
-        const timer = setInterval(() => setTime((t) => Math.min(t + 0.25, SIMULATED_LENGTH)), 250);
-        return () => clearInterval(timer);
-    }, [loading, playing]);
-
-    useEffect(() => {
-        if (time >= SIMULATED_LENGTH) setPlaying(false);
-    }, [time]);
-
-    useEffect(() => {
-        const onKey = (event) => {
-            if (event.key === ' ' && !loading) {
-                event.preventDefault();
-                setPlaying((p) => !p);
-            }
-        };
-        document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
-    }, [loading]);
-
-    const restart = () => { setTime(0); setPlaying(true); };
-
-    return (
-        <div className="nf-player" role="dialog" aria-modal="true" aria-label={`Reproduciendo ${item.title}`}>
-            <div className={`nf-player__screen${playing && !loading ? ' is-playing' : ''}`} style={art(item, 135)} />
-
-            <div className="nf-player__top">
-                <button type="button" className="nf-icon-btn" aria-label="Volver" ref={closeRef} onClick={onClose}>
-                    <BackIcon />
-                </button>
-                <span className="nf-player__now">Estás viendo <strong>{item.title}</strong></span>
-            </div>
-
-            {loading ? (
-                <div className="nf-player__center">
-                    <span className="nf-spinner" aria-label="Cargando" />
-                </div>
-            ) : (
-                <button
-                    type="button"
-                    className="nf-player__center nf-player__toggle"
-                    aria-label={playing ? 'Pausar' : 'Reproducir'}
-                    onClick={() => (time >= SIMULATED_LENGTH ? restart() : setPlaying((p) => !p))}
-                >
-                    {!playing && <span className="nf-player__big">{time >= SIMULATED_LENGTH ? '↻' : <PlayIcon size={44} />}</span>}
-                </button>
-            )}
-
-            <div className="nf-player__bottom">
-                <div className="nf-player__bar">
-                    <input
-                        type="range"
-                        min="0"
-                        max={SIMULATED_LENGTH}
-                        step="1"
-                        value={time}
-                        aria-label="Posición"
-                        style={{ '--progress': `${(time / SIMULATED_LENGTH) * 100}%` }}
-                        onChange={(e) => setTime(Number(e.target.value))}
-                    />
-                    <span className="nf-player__time">{formatTime(SIMULATED_LENGTH - time)}</span>
-                </div>
-                <div className="nf-player__controls">
-                    <button type="button" className="nf-icon-btn" aria-label={playing ? 'Pausar' : 'Reproducir'} disabled={loading} onClick={() => (time >= SIMULATED_LENGTH ? restart() : setPlaying((p) => !p))}>
-                        {playing ? <PauseIcon /> : <PlayIcon size={28} />}
-                    </button>
-                    <span className="nf-player__label">{item.title} · {item.type === 'Serie' ? 'T1:E1 "Piloto"' : item.genre}</span>
-                    <span className="nf-player__note">Simulación: no hay video real</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 /* ---------- Página ---------- */
 
-export default function Browse({ user, csrfToken, titles }) {
+export default function Browse({ user, csrfToken, titles, contents = [] }) {
     const [section, setSection] = useState('home');
     const [query, setQuery] = useState('');
     const [detail, setDetail] = useState(null);
     const [playing, setPlaying] = useState(null);
     const myList = useMyList();
 
-    // Todos los títulos de la base de datos (películas y series).
-    const catalog = useMemo(() => buildCatalog(titles), [titles]);
+    // Títulos de Postgres (tabla titles) + contenido multimedia de MongoDB.
+    // Solo lo que tiene video real; los títulos sin video no se muestran.
+    const catalog = useMemo(
+        () => [...buildContentCatalog(contents), ...buildCatalog(titles)].filter(isPlayable),
+        [titles, contents],
+    );
     const homeRows = useMemo(() => buildHomeRows(catalog), [catalog]);
 
     // Destacado al azar en cada visita, como la portada de Netflix.
     const featured = useMemo(() => {
-        const options = catalog.filter((item) => item.year >= 2024);
+        const options = catalog.filter((item) => item.poster);
         return options[Math.floor(Math.random() * options.length)];
     }, [catalog]);
 
+    // Los filtros se reinician al cambiar de sección.
+    const [filters, setFilters] = useState(EMPTY_FILTERS);
+
     useEffect(() => {
         window.scrollTo({ top: 0 });
+        setFilters(EMPTY_FILTERS);
     }, [section]);
 
     const closeDetail = useCallback(() => setDetail(null), []);
     const closePlayer = useCallback(() => setPlaying(null), []);
-    const play = useCallback((item) => { setDetail(null); setPlaying(item); }, []);
+    // episodeIndex: desde qué capítulo empezar (las series se pueden abrir en cualquier capítulo).
+    const play = useCallback((item, episodeIndex = 0) => { setDetail(null); setPlaying({ item, episodeIndex }); }, []);
 
     const listItems = myList.ids.map((id) => catalog.find((item) => item.id === id)).filter(Boolean);
     const term = query.trim().toLowerCase();
     const results = term
-        ? catalog.filter((item) => `${item.title} ${item.genre} ${item.type}`.toLowerCase().includes(term))
+        ? catalog.filter((item) => `${item.title} ${item.genres.join(' ')} ${item.type} ${(item.tags ?? []).join(' ')}`.toLowerCase().includes(term))
         : [];
 
+    // Series y Películas muestran filas hasta que se elige un filtro; Explorar siempre muestra la cuadrícula.
+    const type = SECTION_TYPE[section];
+    const sectionCatalog = type ? catalog.filter((item) => item.type === type) : catalog;
+    const filtering = !term && (section === 'explore' || (type && hasActiveFilters(filters)));
+
     let content;
-    if (term) {
+    if (filtering) {
+        const items = filterCatalog(sectionCatalog, filters);
+        const label = SECTIONS.find((s) => s.id === section).label;
+        content = (
+            <>
+                <FilterBar catalog={sectionCatalog} filters={filters} onChange={setFilters} />
+                <Grid
+                    title={`${label}${filters.genre ? `: ${filters.genre}` : ''} · ${items.length} ${items.length === 1 ? 'título' : 'títulos'}`}
+                    items={items}
+                    empty="No hay títulos con esos filtros. Prueba quitando alguno."
+                    onOpen={setDetail}
+                />
+            </>
+        );
+    } else if (term) {
         content = <Grid title={`Resultados para "${query.trim()}"`} items={results} empty="No encontramos títulos con esa búsqueda." onOpen={setDetail} />;
     } else if (section === 'my-list') {
         content = <Grid title="Mi lista" items={listItems} empty='Aún no agregas títulos. Abre uno y usa el botón "+" para guardarlo aquí.' onOpen={setDetail} />;
     } else {
-        const type = { series: 'Serie', movies: 'Película' }[section];
         const rows = [
             ...(listItems.length && !type ? [{ id: 'my-list', title: 'Mi lista', items: listItems }] : []),
             ...homeRows,
@@ -525,10 +542,11 @@ export default function Browse({ user, csrfToken, titles }) {
             })
             .filter((row) => row.items.length >= 2);
 
-        const heroItem = type && featured?.type !== type ? catalog.find((item) => item.type === type && item.year >= 2024) : featured;
+        const heroItem = type && featured?.type !== type ? catalog.find((item) => item.type === type && item.poster) : featured;
 
         content = (
             <>
+                {type && <FilterBar catalog={sectionCatalog} filters={filters} onChange={setFilters} />}
                 {heroItem && <Hero item={heroItem} onPlay={play} onInfo={setDetail} />}
                 <div className="nf-rows">
                     {rows.map((row) => <Row key={`${section}-${row.id}`} row={row} onOpen={setDetail} />)}
@@ -540,8 +558,12 @@ export default function Browse({ user, csrfToken, titles }) {
     return (
         <div className="nf-app">
             <Navbar user={user} csrfToken={csrfToken} section={section} onSection={setSection} query={query} onQuery={setQuery} />
-            <main className={`nf-main${term || section === 'my-list' ? ' nf-main--plain' : ''}`}>{content}</main>
-            <footer className="nf-footer">Netfic · Proyecto escolar. Catálogo y reproducción simulados.</footer>
+            {/* En Series y Películas los filtros van arriba, en el flujo de la página (no encima de la portada). */}
+            <main className={`nf-main${term || filtering || section === 'my-list' ? ' nf-main--plain' : type ? ' nf-main--filters' : ''}`}>{content}</main>
+            <footer className="nf-footer">
+                Netfic · Proyecto escolar. Clásicos de dominio público de Internet Archive y frutinovelas
+                reproducidas con el reproductor oficial de YouTube; los derechos son de sus canales.
+            </footer>
 
             {detail && (
                 <DetailModal
@@ -555,7 +577,7 @@ export default function Browse({ user, csrfToken, titles }) {
                     onClose={closeDetail}
                 />
             )}
-            {playing && <Player item={playing} onClose={closePlayer} />}
+            {playing && <Player key={playing.item.id} item={playing.item} startIndex={playing.episodeIndex} onClose={closePlayer} />}
         </div>
     );
 }

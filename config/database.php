@@ -84,6 +84,13 @@ return [
             ]) : [],
         ],
 
+        // Catálogo de contenido multimedia (Internet Archive, frutinovelas, contenido generado por IA).
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'dsn' => env('MONGODB_URI', 'mongodb://127.0.0.1:27017'),
+            'database' => env('MONGODB_DATABASE', 'netfic'),
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),

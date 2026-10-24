@@ -26,13 +26,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// Panel de administración y API de títulos: solo administradores (rol "admin" en la tabla users).
+// Panel de administración: solo administradores
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', fn () => view('admin.index'))->name('admin.index');
 
-    // Las escrituras también validan el token CSRF (el panel lo envía en la cabecera X-CSRF-TOKEN).
-    Route::prefix('api')->group(function () {
-        Route::get('/titles', [TitleController::class, 'index']);
+    Route::prefix('admin-api')->group(function () {
         Route::post('/titles', [TitleController::class, 'store']);
         Route::put('/titles/{title}', [TitleController::class, 'update']);
         Route::patch('/titles/{title}', [TitleController::class, 'update']);

@@ -20,7 +20,8 @@
     <div id="browse"
          data-user="{{ json_encode(['name' => auth()->user()->name, 'email' => auth()->user()->email, 'isAdmin' => auth()->user()->isAdmin()]) }}"
          data-csrf="{{ csrf_token() }}"
-         data-titles="{{ $titles->toJson() }}"></div>
+         data-titles="{{ $titles->toJson() }}"
+         data-contents="{{ $contents->toJson() }}"></div>
 
     <noscript>
         <div class="auth-wrapper">

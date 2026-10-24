@@ -3,18 +3,27 @@ import { useState } from "react";
 import { csrfToken } from "./csrf.js";
 
 // Mismos géneros y clasificaciones que tiene la base de datos (database/seeders/TitleSeeder.php).
+// Mismo catálogo que App\Services\GenreCategorizer::GENRES (contenido de MongoDB).
 const GENRES = [
   "Acción",
+  "Animación",
   "Aventura",
+  "Bélico",
   "Ciencia ficción",
+  "Cine negro",
+  "Comedia",
   "Crimen",
   "Documental",
   "Drama",
+  "Familia",
   "Fantasía",
+  "Histórico",
   "Misterio",
+  "Musical",
   "Romance",
   "Terror",
   "Thriller",
+  "Western",
 ];
 const MATURITY_OPTIONS = ["TP", "7+", "13+", "16+", "18+"];
 
@@ -121,7 +130,7 @@ export default function CreateTitleForm({ initialData, onSuccess }) {
     setErrors([]);
     setSuccessMsg(null);
 
-    const url = isEditing ? `/api/titles/${initialData.id}` : "/api/titles";
+    const url = isEditing ? `/admin-api/titles/${initialData.id}` : "/admin-api/titles";
 
     try {
       const response = await fetch(url, {

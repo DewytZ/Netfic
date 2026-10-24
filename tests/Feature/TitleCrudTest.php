@@ -41,28 +41,28 @@ class TitleCrudTest extends TestCase
         ], $overrides);
     }
 
-    public function test_guests_cannot_use_the_titles_api(): void
+    public function test_guests_can_read_but_not_modify_titles(): void
     {
         $title = Title::create($this->movieData());
 
-        $this->getJson('/api/titles')->assertUnauthorized();
-        $this->postJson('/api/titles', $this->movieData(['title' => 'Otra']))->assertUnauthorized();
-        $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertUnauthorized();
-        $this->deleteJson("/api/titles/{$title->id}")->assertUnauthorized();
+        $this->getJson('/api/titles')->assertOk(); // el catálogo es público
+        $this->postJson('/admin-api/titles', $this->movieData(['title' => 'Otra']))->assertUnauthorized();
+        $this->putJson("/admin-api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertUnauthorized();
+        $this->deleteJson("/admin-api/titles/{$title->id}")->assertUnauthorized();
 
         $this->assertDatabaseMissing('titles', ['title' => 'Otra']);
         $this->assertDatabaseHas('titles', ['id' => $title->id, 'title' => 'Pulso']);
     }
 
-    public function test_regular_users_cannot_use_the_titles_api(): void
+    public function test_regular_users_can_read_but_not_modify_titles(): void
     {
         $title = Title::create($this->movieData());
         $this->actingAs(User::factory()->create());
 
-        $this->getJson('/api/titles')->assertForbidden();
-        $this->postJson('/api/titles', $this->movieData(['title' => 'Otra']))->assertForbidden();
-        $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertForbidden();
-        $this->deleteJson("/api/titles/{$title->id}")->assertForbidden();
+        $this->getJson('/api/titles')->assertOk(); // el catálogo es público
+        $this->postJson('/admin-api/titles', $this->movieData(['title' => 'Otra']))->assertForbidden();
+        $this->putJson("/admin-api/titles/{$title->id}", $this->movieData(['title' => 'Cambiada']))->assertForbidden();
+        $this->deleteJson("/admin-api/titles/{$title->id}")->assertForbidden();
 
         $this->assertDatabaseMissing('titles', ['title' => 'Otra']);
         $this->assertDatabaseHas('titles', ['id' => $title->id, 'title' => 'Pulso']);
@@ -80,7 +80,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/titles', $this->movieData())
+        $this->postJson('/admin-api/titles', $this->movieData())
             ->assertCreated()
             ->assertJsonPath('colors', ['#e11d48', '#4a044e']);
 
@@ -91,7 +91,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/titles', $this->seriesData())->assertCreated();
+        $this->postJson('/admin-api/titles', $this->seriesData())->assertCreated();
 
         $this->assertDatabaseHas('titles', ['title' => 'Señal Perdida', 'duration' => null, 'seasons' => 2]);
     }
@@ -100,7 +100,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/titles', $this->movieData(['duration' => null]))
+        $this->postJson('/admin-api/titles', $this->movieData(['duration' => null]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('duration');
     }
@@ -109,7 +109,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/titles', $this->seriesData(['seasons' => null]))
+        $this->postJson('/admin-api/titles', $this->seriesData(['seasons' => null]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('seasons');
     }
@@ -118,7 +118,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->postJson('/api/titles', $this->movieData(['year' => 1800]))
+        $this->postJson('/admin-api/titles', $this->movieData(['year' => 1800]))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('year');
     }
@@ -128,7 +128,7 @@ class TitleCrudTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
-        $this->putJson("/api/titles/{$title->id}", $this->movieData(['title' => 'Pulso Editado', 'genre' => 'Drama']))
+        $this->putJson("/admin-api/titles/{$title->id}", $this->movieData(['title' => 'Pulso Editado', 'genre' => 'Drama']))
             ->assertOk()
             ->assertJsonPath('title', 'Pulso Editado');
 
@@ -141,7 +141,7 @@ class TitleCrudTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
-        $this->putJson("/api/titles/{$title->id}", $this->seriesData(['duration' => '1 h 43 min']))
+        $this->putJson("/admin-api/titles/{$title->id}", $this->seriesData(['duration' => '1 h 43 min']))
             ->assertOk();
 
         $this->assertDatabaseHas('titles', ['id' => $title->id, 'type' => 'Serie', 'duration' => null, 'seasons' => 2]);
@@ -152,7 +152,7 @@ class TitleCrudTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
         $title = Title::create($this->movieData());
 
-        $this->deleteJson("/api/titles/{$title->id}")->assertNoContent();
+        $this->deleteJson("/admin-api/titles/{$title->id}")->assertNoContent();
 
         $this->assertDatabaseMissing('titles', ['id' => $title->id]);
     }
@@ -161,7 +161,7 @@ class TitleCrudTest extends TestCase
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->putJson('/api/titles/999', $this->movieData())->assertNotFound();
-        $this->deleteJson('/api/titles/999')->assertNotFound();
+        $this->putJson('/admin-api/titles/999', $this->movieData())->assertNotFound();
+        $this->deleteJson('/admin-api/titles/999')->assertNotFound();
     }
 }

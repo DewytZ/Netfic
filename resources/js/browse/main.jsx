@@ -7,5 +7,7 @@ if (container) {
     const user = JSON.parse(container.dataset.user);
     // Títulos de la base de datos (los manda DashboardController en data-titles).
     const titles = JSON.parse(container.dataset.titles || '[]');
-    createRoot(container).render(<Browse user={user} csrfToken={container.dataset.csrf} titles={titles} />);
+    // Contenido multimedia libre de copyright guardado en MongoDB.
+    const contents = JSON.parse(container.dataset.contents || '[]');
+    createRoot(container).render(<Browse user={user} csrfToken={container.dataset.csrf} titles={titles} contents={contents} />);
 }

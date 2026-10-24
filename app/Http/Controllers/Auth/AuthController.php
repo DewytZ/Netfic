@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\Content;
 use App\Models\Title;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -66,6 +69,22 @@ class AuthController extends Controller
         $titles = Title::orderBy('id')
             ->get(['id', 'title', 'type', 'genre', 'year', 'duration', 'seasons', 'maturity', 'description', 'colors']);
 
-        return view('dashboard', ['titles' => $titles]);
+        return view('dashboard', ['titles' => $titles, 'contents' => $this->multimediaContents()]);
+    }
+
+    // Contenido libre de copyright de MongoDB (Internet Archive, frutinovelas, IA).
+    // Si MongoDB no responde, el dashboard sigue funcionando solo con la tabla titles.
+    private function multimediaContents(): Collection
+    {
+        try {
+            return Content::published()->orderBy('created_at', 'desc')->limit(200)->get([
+                'title', 'slug', 'type', 'source', 'license', 'synopsis', 'genres', 'year',
+                'duration', 'maturity', 'poster_url', 'video_url', 'embed_url', 'episodes', 'tags', 'source_ref',
+            ]);
+        } catch (Throwable $e) {
+            report($e);
+
+            return collect();
+        }
     }
 }

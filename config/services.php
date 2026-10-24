@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+
+    // Python con yt-dlp para importar metadatos de frutinovelas (scripts/youtube_catalog.py).
+    'youtube' => [
+        'python' => env('PYTHON_BIN', 'python'),
+    ],
+
 ];

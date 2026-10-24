@@ -83,7 +83,7 @@ export function TitlesTable() {
     if (!window.confirm('¿Estás seguro de eliminar este título?')) return;
   try {
     
-    const res = await fetch(`/api/titles/${id}`, {
+    const res = await fetch(`/admin-api/titles/${id}`, {
       method: 'DELETE',
       headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
     });
