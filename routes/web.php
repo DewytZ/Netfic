@@ -26,10 +26,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// Panel de administración: solo administradores
+// Panel de administración: solo administradores (rol "admin" en la tabla users).
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin', fn () => view('admin.index'))->name('admin.index');
 
+    // Las escrituras de admin también validan el token CSRF (el panel lo envía en la cabecera X-CSRF-TOKEN).
+    // Van en /admin-api para no chocar con la API pública de routes/api.php (/api/...).
     Route::prefix('admin-api')->group(function () {
         Route::post('/titles', [TitleController::class, 'store']);
         Route::put('/titles/{title}', [TitleController::class, 'update']);

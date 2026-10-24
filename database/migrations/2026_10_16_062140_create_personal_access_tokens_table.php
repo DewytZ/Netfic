@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Hay dos migraciones iguales (una de cada rama). La que corra primero crea la tabla;
+        // la otra no hace nada, en cualquier base de datos y en cualquier orden.
+        if (Schema::hasTable('personal_access_tokens')) {
+            return;
+        }
+
         Schema::create('personal_access_tokens', function (Blueprint $table) {
             $table->id();
             $table->morphs('tokenable');

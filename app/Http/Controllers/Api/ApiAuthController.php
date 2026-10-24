@@ -6,16 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class ApiAuthController extends Controller
 {
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
 
         $user = User::where('email', $request->email)->first();
 
@@ -26,29 +35,35 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
-        // Crear token de Sanctum
-        $token = $user->createToken('android_auth_token')->plainTextToken;
+        $token = $user->createToken('android_app')->plainTextToken;
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Inicio de sesión exitoso.',
+            'message' => 'Inicio de sesión exitoso',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'created_at' => $user->created_at,
+                'created_at' => $user->created_at?->toIso8601String(),
             ],
-        ], 200);
+        ]);
     }
 
     public function register(Request $request): JsonResponse
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => 'required|string|min:8',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -56,28 +71,40 @@ class ApiAuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('android_auth_token')->plainTextToken;
+        $token = $user->createToken('android_app')->plainTextToken;
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Usuario registrado con éxito.',
+            'message' => 'Usuario registrado exitosamente',
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'created_at' => $user->created_at,
+                'created_at' => $user->created_at?->toIso8601String(),
             ],
         ], 201);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Sesión cerrada exitosamente.',
+            'message' => 'Sesión cerrada correctamente.',
+        ]);
+    }
+
+    public function user(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'created_at' => $user->created_at?->toIso8601String(),
         ]);
     }
 }

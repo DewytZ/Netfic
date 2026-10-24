@@ -131,6 +131,8 @@ body.nf-lock {
 .nf-search input {
     width: 0;
     padding: 0;
+    height: 36px;
+    line-height: 36px;
     border: none;
     background: none;
     color: var(--text-main);
@@ -149,6 +151,20 @@ body.nf-lock {
     width: 200px;
     padding-right: 12px;
 }
+.nf-search input:focus,
+.nf-search input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border: none;
+}
+
+.nf-search.is-open:focus-within {
+    border-color: #6366f1;
+}
+
+
+
+
 
 /* Perfil */
 .nf-profile {
