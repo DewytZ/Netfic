@@ -27,9 +27,14 @@ class AuthController extends Controller
         $user = User::create($request->validated());
 
         Auth::login($user);
-        $request->session()->regenerate();
 
-        return redirect()->route('dashboard')->with('status', 'Cuenta creada correctamente.');
+        $request->session()->regenerate();
+        $request->session()->forget('active_profile_id');
+        $request->session()->forget('url.intended');
+
+        return redirect()
+            ->route('profiles.index')
+            ->with('status', 'Cuenta creada correctamente.');
     }
 
     public function showLogin(): View
@@ -39,18 +44,30 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): RedirectResponse
     {
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            return redirect()->route('login')
-                ->withErrors(['email' => 'Las credenciales no son correctas.'])
+        if (! Auth::attempt(
+            $request->only('email', 'password'),
+            $request->boolean('remember')
+        )) {
+            return redirect()
+                ->route('login')
+                ->withErrors([
+                    'email' => 'Las credenciales no son correctas.',
+                ])
                 ->onlyInput('email');
         }
 
         $request->session()->regenerate();
+        $request->session()->forget('active_profile_id');
 
-        // Si venía de una página protegida vuelve ahí; si no, los admins entran a su panel.
-        $home = $request->user()->isAdmin() ? route('admin.index') : route('dashboard');
+        // Conservamos el comportamiento actual para administradores.
+        if ($request->user()->isAdmin()) {
+            return redirect()->intended(route('admin.index'));
+        }
 
-        return redirect()->intended($home);
+        // Los usuarios seleccionan un perfil antes del catálogo.
+        $request->session()->forget('url.intended');
+
+        return redirect()->route('profiles.index');
     }
 
     public function logout(Request $request): RedirectResponse
@@ -60,16 +77,49 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Sesión cerrada.');
+        return redirect()
+            ->route('login')
+            ->with('status', 'Sesión cerrada.');
     }
 
-    public function dashboard(): View
+    public function dashboard(Request $request): View|RedirectResponse
     {
-        // Todo el catálogo (películas y series) sale de la base de datos (tabla titles).
-        $titles = Title::orderBy('id')
-            ->get(['id', 'title', 'type', 'genre', 'year', 'duration', 'seasons', 'maturity', 'description', 'colors']);
+        // Los administradores conservan el acceso directo al catálogo.
+        if (! $request->user()->isAdmin()) {
+            $activeProfileId = $request->session()->get('active_profile_id');
 
-        return view('dashboard', ['titles' => $titles, 'contents' => $this->multimediaContents()]);
+            $hasValidProfile = $activeProfileId !== null
+                && $request->user()
+                    ->profiles()
+                    ->whereKey($activeProfileId)
+                    ->exists();
+
+            if (! $hasValidProfile) {
+                $request->session()->forget('active_profile_id');
+
+                return redirect()->route('profiles.index');
+            }
+        }
+
+        // Todo el catálogo sale de la base de datos (tabla titles).
+        $titles = Title::orderBy('id')
+            ->get([
+                'id',
+                'title',
+                'type',
+                'genre',
+                'year',
+                'duration',
+                'seasons',
+                'maturity',
+                'description',
+                'colors',
+            ]);
+
+        return view('dashboard', [
+            'titles' => $titles,
+            'contents' => $this->multimediaContents(),
+        ]);
     }
 
     // Contenido libre de copyright de MongoDB (Internet Archive, frutinovelas, IA).
@@ -77,10 +127,27 @@ class AuthController extends Controller
     private function multimediaContents(): Collection
     {
         try {
-            return Content::published()->orderBy('created_at', 'desc')->limit(200)->get([
-                'title', 'slug', 'type', 'source', 'license', 'synopsis', 'genres', 'year',
-                'duration', 'maturity', 'poster_url', 'video_url', 'embed_url', 'episodes', 'tags', 'source_ref',
-            ]);
+            return Content::published()
+                ->orderBy('created_at', 'desc')
+                ->limit(200)
+                ->get([
+                    'title',
+                    'slug',
+                    'type',
+                    'source',
+                    'license',
+                    'synopsis',
+                    'genres',
+                    'year',
+                    'duration',
+                    'maturity',
+                    'poster_url',
+                    'video_url',
+                    'embed_url',
+                    'episodes',
+                    'tags',
+                    'source_ref',
+                ]);
         } catch (Throwable $e) {
             report($e);
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\TitleController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/dashboard');
@@ -22,8 +23,24 @@ Route::get('/reset-password/{token}', [PasswordResetController::class, 'showRese
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/profiles', [ProfileController::class, 'index'])
+        ->name('profiles.index');
+
+    Route::get('/profiles/create', [ProfileController::class, 'create'])
+        ->name('profiles.create');
+
+    Route::post('/profiles', [ProfileController::class, 'store'])
+        ->name('profiles.store');
+
+    Route::post('/profiles/{profile}/select', [ProfileController::class, 'select'])
+        ->whereNumber('profile')
+        ->name('profiles.select');
+
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])
+        ->name('dashboard');
+
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->name('logout');
 });
 
 // Panel de administración: solo administradores (rol "admin" en la tabla users).
