@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\TitleController;
@@ -37,5 +38,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
         Route::put('/titles/{title}', [TitleController::class, 'update']);
         Route::patch('/titles/{title}', [TitleController::class, 'update']);
         Route::delete('/titles/{title}', [TitleController::class, 'destroy']);
+
+        // Contenido multimedia de MongoDB: mismo controlador que /api/admin/contents, pero con la sesión
+        // del navegador en lugar de un token Bearer, para que el panel pueda usarlo.
+        Route::get('/contents', [ContentController::class, 'adminIndex']);
+        Route::post('/contents', [ContentController::class, 'store']);
+        Route::match(['put', 'patch'], '/contents/{content}', [ContentController::class, 'update']);
+        Route::delete('/contents/{content}', [ContentController::class, 'destroy']);
     });
 });

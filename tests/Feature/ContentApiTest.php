@@ -93,6 +93,37 @@ class ContentApiTest extends TestCase
         $this->assertSame(0, Content::count());
     }
 
+    public function test_admin_panel_manages_content_with_the_browser_session(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $id = $this->postJson('/admin-api/contents', $this->contentData(['published' => false]))
+            ->assertCreated()
+            ->json('id');
+
+        // El panel ve también lo no publicado.
+        $this->getJson('/admin-api/contents?published=0')->assertOk()->assertJsonPath('data.0.id', $id);
+
+        // Editar sin enviar episodes conserva los capítulos.
+        $data = collect($this->contentData(['title' => 'Corazón de Piña']))->except('episodes')->all();
+        $this->putJson("/admin-api/contents/{$id}", $data)->assertOk()->assertJsonPath('title', 'Corazón de Piña');
+        $this->assertSame('Piloto', Content::find($id)->episodes[0]['title']);
+
+        $this->patchJson("/admin-api/contents/{$id}", ['published' => true])->assertOk();
+        $this->getJson('/api/contents')->assertJsonPath('data.0.title', 'Corazón de Piña');
+
+        $this->deleteJson("/admin-api/contents/{$id}")->assertNoContent();
+        $this->assertSame(0, Content::count());
+    }
+
+    public function test_admin_panel_content_routes_reject_regular_users(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->getJson('/admin-api/contents')->assertForbidden();
+        $this->postJson('/admin-api/contents', $this->contentData())->assertForbidden();
+    }
+
     public function test_validation_rejects_unknown_source_and_license(): void
     {
         Sanctum::actingAs(User::factory()->admin()->create());
