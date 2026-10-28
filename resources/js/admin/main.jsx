@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { AdminHeader } from "./AdminHeader.jsx";
-import { TitlesTable } from "./TitlesTable.jsx";
+import { AdminPanel } from "./AdminPanel.jsx";
 
 // Busca el elemento en el HTML donde se va a pintar el panel.
 const container = document.getElementById('admin-root');
@@ -12,7 +12,7 @@ if (container) {
     root.render(
         <>
             <AdminHeader user={user} />
-            <TitlesTable />
+            <AdminPanel />
         </>
     );
 }

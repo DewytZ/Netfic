@@ -797,3 +797,147 @@ body.admin-body {
         transition: none;
     }
 }
+
+/* ---------- Pestañas del panel (contenido multimedia / títulos) ---------- */
+.admin-tabs {
+    display: flex;
+    gap: 6px;
+    width: 92%;
+    max-width: 1200px;
+    margin: 28px auto 0;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.admin-tabs__tab {
+    padding: 12px 18px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.admin-tabs__tab:hover {
+    color: var(--text-main);
+}
+
+.admin-tabs__tab--active {
+    border-bottom-color: var(--primary);
+    color: var(--text-main);
+}
+
+/* Los filtros de contenido comparten fila con el buscador. */
+.search-box select {
+    height: 42px;
+    padding: 0 10px;
+    background-color: rgba(8, 11, 17, 0.85);
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+.admin-header:has(select) .search-box {
+    max-width: 640px;
+    flex-wrap: wrap;
+}
+
+.cell-note {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-subtle);
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+/* Botón de estado: publicar / ocultar con un clic */
+.status-toggle {
+    padding: 4px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    background-color: rgba(148, 163, 184, 0.12);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.status-toggle--on {
+    border-color: rgba(16, 185, 129, 0.4);
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+}
+
+/* Selector de géneros como chips */
+.genre-picker {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.genre-picker legend {
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.genre-picker__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.create-title-form .genre-picker .chip {
+    display: inline-flex;
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.create-title-form .genre-picker .chip--on {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    color: #fff;
+}
+
+.create-title-form .genre-picker .chip input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    min-height: 0;
+    pointer-events: none;
+}
+
+.create-title-form .chip:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px var(--input-focus-glow);
+}
+
+.create-title-form .publish-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.create-title-form .publish-check input {
+    width: 18px;
+    min-height: 18px;
+    accent-color: var(--primary);
+}
+
+.create-title-form .form-note {
+    margin: 0;
+    color: var(--text-subtle);
+    font-size: 0.82rem;
+}
