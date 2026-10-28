@@ -52,4 +52,8 @@ class User extends Authenticatable
     {
         return $this->role === UserRole::Admin;
     }
+    public function profiles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Profile::class);
+    }
 }
