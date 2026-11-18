@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ContentSanitizer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use MongoDB\Laravel\Eloquent\Model;
@@ -67,6 +68,9 @@ class Content extends Model
 
     protected static function booted(): void
     {
+        // Todo lo que se guarda pasa primero por el sanitizador (texto, URLs y capítulos).
+        static::saving(fn (Content $content) => app(ContentSanitizer::class)->apply($content));
+
         // Genera un slug único a partir del título si no viene uno.
         static::saving(function (Content $content) {
             if (blank($content->slug) && filled($content->title)) {

@@ -4,7 +4,7 @@ import {
     buildCatalog, buildContentCatalog, buildHomeRows, decadesOf, filterCatalog, genreCounts, hasActiveFilters, isPlayable,
 } from './catalog.js';
 import { useOverlay } from './overlay.js';
-import Player from './Player.jsx';
+import Player, { preloadYouTubeApi } from './Player.jsx';
 import './Browse.css';
 
 const MY_LIST_KEY = 'netfic:my-list';
@@ -480,6 +480,11 @@ export default function Browse({ user, csrfToken, titles, contents = [] }) {
         [titles, contents],
     );
     const homeRows = useMemo(() => buildHomeRows(catalog), [catalog]);
+
+    // Si hay frutinovelas, la API de YouTube se carga ya: al dar "Reproducir" el video arranca enseguida.
+    useEffect(() => {
+        if (catalog.some((item) => item.embedUrl || item.episodes?.some((ep) => ep.videoId))) preloadYouTubeApi();
+    }, [catalog]);
 
     // Destacado al azar en cada visita, como la portada de Netflix.
     const featured = useMemo(() => {

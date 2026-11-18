@@ -991,6 +991,7 @@ a.nf-menu__admin:hover {
 .nf-player__frame iframe {
     position: absolute;
     inset: 0;
+    z-index: 1;
     width: 100%;
     height: 100%;
     border: 0;
@@ -998,17 +999,143 @@ a.nf-menu__admin:hover {
     background-color: #000;
 }
 
+/* YouTube: sin fondo propio, para que la carátula de carga (detrás) se vea hasta que aparezca el iframe. */
+.nf-player__frame--youtube,
+.nf-player__frame--youtube iframe {
+    background-color: transparent;
+}
+
+/* Carátula de carga: póster desenfocado + indicador. Detrás del iframe de YouTube; delante del <video> propio. */
+.nf-player__cover {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background-color: #000;
+    transition: opacity 0.4s ease;
+}
+
+.nf-player__cover--front {
+    z-index: 2;
+}
+
+.nf-player__cover.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nf-player__cover img {
+    position: absolute;
+    inset: -20px;
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+    object-fit: cover;
+    filter: blur(18px) brightness(0.45);
+}
+
+.nf-player__spinner {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: nf-spin 0.9s linear infinite;
+}
+
+@keyframes nf-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Pantalla final de Netfic: el video ya no está en la vista (se oculta con "hidden"), así que no tapa nada. */
 .nf-player__finished {
     position: absolute;
     inset: 0;
+    z-index: 3;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    background-color: rgba(0, 0, 0, 0.85);
+    overflow: hidden;
+    background-color: #000;
     font-size: 1.3rem;
     font-weight: 700;
+}
+
+/* Aviso de error: igual que la pantalla final, con el video fuera de la vista. */
+.nf-player__error {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px;
+    overflow: hidden;
+    background-color: #000;
+    text-align: center;
+}
+
+.nf-player__error p {
+    position: relative;
+    max-width: 560px;
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.nf-player__error .nf-player__finished-actions a {
+    text-decoration: none;
+}
+
+.nf-player__finished-bg {
+    position: absolute;
+    inset: -20px;
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+    object-fit: cover;
+    filter: blur(18px) brightness(0.35);
+}
+
+.nf-player__finished p,
+.nf-player__finished-actions {
+    position: relative;
+    margin: 0;
+}
+
+.nf-player__finished-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Sin mover el mouse mientras se reproduce: barras y cursor se desvanecen (el video no cambia de tamaño). */
+.nf-player__top,
+.nf-player__controls {
+    transition: opacity 0.3s ease;
+}
+
+.nf-player.is-idle {
+    cursor: none;
+}
+
+.nf-player.is-idle .nf-player__top,
+.nf-player.is-idle .nf-player__controls {
+    opacity: 0;
+}
+
+.nf-player.is-idle .nf-player__top:hover,
+.nf-player.is-idle .nf-player__top:focus-within,
+.nf-player.is-idle .nf-player__controls:hover,
+.nf-player.is-idle .nf-player__controls:focus-within {
+    opacity: 1;
+    cursor: auto;
 }
 
 /* Lista de capítulos: al costado del video, no encima. */
@@ -1124,6 +1251,82 @@ a.nf-menu__admin:hover {
     flex: 1;
 }
 
+.nf-player__volume {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nf-player__volume-range {
+    width: 0;
+    height: 4px;
+    margin: 0;
+    opacity: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 2px;
+    background: linear-gradient(to right, #fff var(--progress), rgba(255, 255, 255, 0.25) var(--progress));
+    cursor: pointer;
+    transition: width 0.2s ease, opacity 0.2s ease, margin 0.2s ease;
+}
+
+/* El volumen se despliega al pasar el mouse o con el teclado, como en los reproductores de streaming. */
+.nf-player__volume:hover .nf-player__volume-range,
+.nf-player__volume:focus-within .nf-player__volume-range {
+    width: 80px;
+    margin: 0 8px 0 2px;
+    opacity: 1;
+}
+
+.nf-player__volume-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #fff;
+}
+
+.nf-player__volume-range::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: none;
+    border-radius: 50%;
+    background-color: #fff;
+}
+
+.nf-player__unmute,
+.nf-player__rate {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.nf-player__unmute {
+    margin-left: 6px;
+    padding: 6px 12px;
+    background-color: var(--primary);
+    font-size: 0.85rem;
+    animation: nf-fade 0.25s ease-out;
+}
+
+.nf-player__rate {
+    min-width: 48px;
+    justify-content: center;
+    padding: 8px 10px;
+    background: none;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.nf-player__rate:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
 .nf-player__next {
     display: inline-flex;
     align-items: center;
@@ -1171,6 +1374,8 @@ a.nf-menu__admin:hover {
     }
 
     .nf-player__next span,
+    .nf-player__unmute span,
+    .nf-player__volume-range,
     .nf-player__clock {
         display: none;
     }

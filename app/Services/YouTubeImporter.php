@@ -47,6 +47,19 @@ class YouTubeImporter
             return null;
         }
 
+        if ($this->isShort($video)) {
+            $this->skipReason = 'es un Short de YouTube';
+
+            return null;
+        }
+
+        // Un video que ya es capítulo de otra novela no se importa además suelto.
+        if ($owner = $this->novelaContaining($video['id'])) {
+            $this->skipReason = "ya es capítulo de «{$owner->title}»";
+
+            return null;
+        }
+
         $segments = $this->segments($video);
         $genres = $this->genres($tags, $title, $synopsis);
         $isSeries = count($segments) > 1;
@@ -77,14 +90,22 @@ class YouTubeImporter
     {
         $this->skipReason = null;
 
+        // Los Shorts se insertan con la interfaz vertical de Shorts: no sirven como capítulos.
+        $videos = array_values(array_filter($videos, fn ($v) => ! $this->isShort($v)));
+
         if (! $videos) {
-            $this->skipReason = 'la lista no tiene videos que se puedan insertar';
+            $this->skipReason = 'la lista no tiene videos que se puedan insertar (o solo tiene Shorts)';
 
             return null;
         }
 
         // La temporada se guarda en cada capítulo: "Amor de Mango Temporada 1" => "Amor de Mango".
-        $title = preg_replace('/\s*\(?\s*(temporada|season)\s*\d+\s*\)?$/iu', '', $this->cleanTitle($playlist['title'] ?? $videos[0]['title'] ?? ''));
+        // "Entre Fresas y Celos – Temporada 1." => "Entre Fresas y Celos" (también sin la raya que queda).
+        $title = preg_replace(
+            ['/\s*\(?\s*(temporada|season)\s*\d+\s*\)?$/iu', '/[\s\-–—|:·.,…]+$/u'],
+            '',
+            $this->cleanTitle($playlist['title'] ?? $videos[0]['title'] ?? ''),
+        );
 
         // Listas llamadas solo "Frutinovelas": se distinguen por el canal.
         if (preg_match('/^fruti\s?novelas?$/iu', $title) && filled($playlist['channel'] ?? null)) {
@@ -259,11 +280,20 @@ class YouTubeImporter
         return $this->skipReason !== null;
     }
 
-    private function save(string $identifier, array $attributes): Content
+    private function save(string $identifier, array $attributes): ?Content
     {
         $content = Content::where('source', Content::SOURCE_FRUTINOVELA)
             ->where('source_ref.identifier', $identifier)
-            ->first() ?? new Content;
+            ->first();
+
+        // Ya se fusionó en otra frutinovela (ContentDeduplicator): no se vuelve a crear el duplicado.
+        if (! $content && $into = Content::where('source', Content::SOURCE_FRUTINOVELA)->where('source_ref.merged', $identifier)->first()) {
+            $this->skipReason = "ya está fusionado en «{$into->title}»";
+
+            return null;
+        }
+
+        $content ??= new Content;
 
         $content->fill($attributes + [
             'source' => Content::SOURCE_FRUTINOVELA,
@@ -274,6 +304,21 @@ class YouTubeImporter
         ])->save();
 
         return $content;
+    }
+
+    // yt-dlp marca los Shorts con media_type = "short" (los JSON exportados antes no lo traen: se aceptan).
+    private function isShort(array $video): bool
+    {
+        return ($video['media_type'] ?? null) === 'short';
+    }
+
+    // Otra frutinovela (no la de este mismo video) que ya tiene el video entre sus capítulos.
+    private function novelaContaining(string $videoId): ?Content
+    {
+        return Content::where('source', Content::SOURCE_FRUTINOVELA)
+            ->where('source_ref.identifier', '!=', $videoId)
+            ->where('episodes.video_id', $videoId)
+            ->first();
     }
 
     private function sourceRef(string $identifier, array $data): array
@@ -311,10 +356,22 @@ class YouTubeImporter
     {
         // Quita emojis y hashtags. Nada de trim() con "·" o "…": trim() corta por bytes y rompe caracteres como "¡".
         // El orden importa: primero se recortan los bordes y luego se quita "frutinovelas" al inicio o al final.
-        $edges = '/^[\s\-|:·.…]+|[\s\-|:·.…]+$/u';
+        $edges = '/^[\s\-–—|:·.,…]+|[\s\-–—|:·.,…]+$/u';
         $clean = fn (string $text) => preg_replace(
-            ['/[\p{So}\p{Sk}\x{FE0F}\x{200D}]/u', '/#\S+/u', '/\s{2,}/u', $edges, '/^fruti\s?novelas?:?\s+|\s+fruti\s?novelas?(\s+completas?)?$/iu', $edges],
-            ['', '', ' ', '', '', ''],
+            [
+                '/[\p{So}\p{Sk}\x{FE0F}\x{200D}]/u',
+                '/#\S+/u',
+                // Etiquetas que no son parte del nombre: "( FRUTI NOVELA )", "Cap. COMPLETO", "4k", "HD", "1080p".
+                '/[(\[]\s*(fruti\s?novelas?|historias?\s+complet[ao]s?)\s*[)\]]/iu',
+                '/\b(cap[ií]tulo|cap)\.?\s*complet[oa]\b/iu',
+                '/\b(4k|full\s?hd|hd|\d{3,4}p)\b/iu',
+                '/\s+([,.;:!?])/u',
+                '/\s{2,}/u',
+                $edges,
+                '/^fruti\s?novelas?:?\s+|\s+fruti\s?novelas?(\s+completas?)?$/iu',
+                $edges,
+            ],
+            ['', '', '', '', '', '$1', ' ', '', '', ''],
             $text,
         );
 
@@ -329,6 +386,11 @@ class YouTubeImporter
         // La primera parte con texto propio: el nombre de la historia suele ir antes del "|".
         $parts = collect(preg_split('/\s*[|｜]\s*/u', $title))->map($clean)->filter();
         $title = $parts->reject($isLabel)->first() ?? $parts->first() ?? '';
+
+        // Recopilaciones que solo dicen cuánto duran ("40 Minutos"): "40 minutos de frutinovelas".
+        if (preg_match('/^\d+\s*(minutos?|min|horas?)$/iu', $title)) {
+            $title = mb_strtolower($title).' de frutinovelas';
+        }
 
         // Títulos casi todo en MAYÚSCULAS: pasarlos a formato oración.
         $letters = preg_replace('/\P{L}/u', '', $title);

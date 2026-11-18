@@ -60,6 +60,9 @@ def skip_reason(info, check_language=True):
         return "restringido por edad en YouTube"
     if info.get("playable_in_embed") is False:
         return "el canal no permite insertarlo"
+    # Los Shorts se insertan con la interfaz vertical de Shorts (logo, "me gusta", compartir): no parecen parte de Netfic.
+    if info.get("media_type") == "short":
+        return "es un Short de YouTube"
     if info.get("availability") not in (None, "public", "unlisted"):
         return f"no es público ({info.get('availability')})"
     # En una serie el idioma se revisa para toda la lista (series_skip_reason): YouTube a veces
@@ -78,6 +81,7 @@ def video_details(ydl, video_id, check_language=True):
         "title": info.get("title"),
         "description": info.get("description"),
         "duration": info.get("duration"),  # segundos
+        "media_type": info.get("media_type"),  # "video", "short" o "livestream"
         "channel": info.get("channel") or info.get("uploader"),
         "channel_url": info.get("channel_url") or info.get("uploader_url"),
         "url": info.get("webpage_url") or f"https://www.youtube.com/watch?v={info['id']}",

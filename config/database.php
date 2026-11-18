@@ -105,7 +105,7 @@ return [
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
             'options' => extension_loaded('pdo_pgsql') ? [
-                // Reutiliza la conexión entre peticiones: con una base remota (Supabase) abrirla cuesta más de 1 s.
+                // Reutiliza la conexión entre peticiones (útil con una base remota).
                 PDO::ATTR_PERSISTENT => (bool) env('DB_PERSISTENT', false),
                 // Envía cada consulta en un solo viaje de red en vez de "preparar" y "ejecutar" por separado.
                 PDO::ATTR_EMULATE_PREPARES => (bool) env('DB_EMULATE_PREPARES', false),

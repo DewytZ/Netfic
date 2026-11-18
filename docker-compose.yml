@@ -1,0 +1,105 @@
+# Netfic completo en Docker: app Laravel + PostgreSQL + MongoDB + Mailpit.
+# Arranque: docker compose up --build   →   http://localhost:8000
+#
+# Las variables de la app están escritas aquí a propósito (sin ${...}):
+# así el .env de tu equipo nunca se cuela en los contenedores.
+
+services:
+  app:
+    build: .
+    container_name: netfic-app
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: Netfic
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      APP_LOCALE: es
+      APP_FALLBACK_LOCALE: en
+      APP_FAKER_LOCALE: es_ES
+      PHP_CLI_SERVER_WORKERS: 4
+
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: debug
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: netfic
+      DB_USERNAME: netfic
+      DB_PASSWORD: netfic
+      DB_SSLMODE: disable
+      DB_PERSISTENT: "false"
+      DB_EMULATE_PREPARES: "false"
+
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DATABASE: netfic
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: sync
+
+      # Los correos (p. ej. "olvidé mi contraseña") se ven en http://localhost:8025
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_FROM_ADDRESS: no-reply@netfic.test
+      MAIL_FROM_NAME: Netfic
+
+      # true: corre los seeders en cada arranque (no duplican datos).
+      SEED_ON_START: "true"
+    volumes:
+      - app-storage:/var/www/html/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: netfic-postgres
+    environment:
+      POSTGRES_DB: netfic
+      POSTGRES_USER: netfic
+      POSTGRES_PASSWORD: netfic
+    ports:
+      - "5433:5432"   # 5433 en tu equipo para no chocar con un Postgres local
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netfic -d netfic"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: netfic-mongo
+    ports:
+      - "27018:27017"  # 27018 en tu equipo para no chocar con un MongoDB local
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: netfic-mailpit
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  app-storage:
+  postgres-data:
+  mongo-data:

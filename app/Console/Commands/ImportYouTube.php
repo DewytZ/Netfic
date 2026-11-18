@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Content;
+use App\Services\ContentDeduplicator;
 use App\Services\YouTubeImporter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
@@ -18,6 +19,8 @@ use Throwable;
  *   php artisan content:import-youtube --playlist="https://www.youtube.com/playlist?list=..."
  *   php artisan content:import-youtube --refresh                         (vuelve a procesar los videos ya importados)
  *   php artisan content:import-youtube --file=frutinovelas.json          (JSON ya exportado)
+ *
+ * Al terminar quita los duplicados (ver ContentDeduplicator), salvo con --no-dedupe.
  */
 class ImportYouTube extends Command
 {
@@ -28,7 +31,8 @@ class ImportYouTube extends Command
         {--max-episodes=40 : Máximo de capítulos por serie}
         {--playlist= : URL de una lista: se importa como una novela con capítulos}
         {--refresh : Volver a procesar los videos sueltos ya importados (aplica la segmentación)}
-        {--file= : Importar un JSON exportado antes con scripts/youtube_catalog.py}';
+        {--file= : Importar un JSON exportado antes con scripts/youtube_catalog.py}
+        {--no-dedupe : No quitar los duplicados al terminar}';
 
     protected $description = 'Importa frutinovelas desde YouTube (metadatos + reproductor insertado)';
 
@@ -61,7 +65,7 @@ class ImportYouTube extends Command
 
         // Con --playlist o --series los videos ya quedaron como capítulos: no se importan además sueltos.
         if ($playlists) {
-            return self::SUCCESS;
+            return $this->dedupe();
         }
 
         $imported = 0;
@@ -82,6 +86,19 @@ class ImportYouTube extends Command
         }
 
         $this->info("Importadas {$imported} frutinovelas.");
+
+        return $this->dedupe();
+    }
+
+    private function dedupe(): int
+    {
+        if ($this->option('no-dedupe')) {
+            return self::SUCCESS;
+        }
+
+        foreach (app(ContentDeduplicator::class)->run() as $entry) {
+            $this->line("<fg=yellow>{$entry['action']}</> {$entry['title']} <fg=gray>→ {$entry['into']} ({$entry['reason']})</>");
+        }
 
         return self::SUCCESS;
     }
